@@ -1,0 +1,54 @@
+\documentclass[usenames,x11names]{report}
+
+\usepackage[english]{babel}
+
+\usepackage{pgf}
+\usepackage{tikz,color}
+\usepackage{ifthen}
+\usetikzlibrary{shadows,positioning,shapes.geometric}
+
+
+
+\begin{document}
+
+\begin{tikzpicture}
+\newcommand{\actorSize}{1.2}
+\newcommand{\wiggleScale}{\actorSize*0.05}
+\newcommand{\wiggleHead}{24/\wiggleScale}
+\newcommand{\wiggleWidth}{0.5pt}
+\newcommand{\wiggleColor}{white}
+
+\tikzstyle{actor_colors} = [color=\wiggleColor,draw=none, top color=Tomato4,bottom color=Tomato4]
+\tikzstyle{mem_colors} = [color=black,draw=none, fill=Cornsilk2]
+\tikzstyle{wiggleHead_colors} = [draw=none,fill=\wiggleColor]
+\tikzstyle{obj_colors} = [fill=Tomato4!100]
+
+\tikzstyle{actor} = [actor_colors,shape=circle,minimum size=\actorSize cm]
+\tikzstyle{actor_square} = [actor_colors,rounded corners=0.2 cm,minimum width=\actorSize cm,minimum height=\actorSize cm]
+\tikzstyle{mem} = [mem_colors,shape=circle,minimum size=5 cm]
+\tikzstyle{obj} = [obj_colors,regular polygon, regular polygon sides=3, minimum height=1.0 cm]
+
+\tikzset{pics/.cd,
+	wiggle/.style args={#1}{code={
+		\draw [draw=\wiggleColor,line width=\wiggleWidth,xshift=-0.5*\wiggleHead] plot[smooth, tension=1.3, scale=\wiggleScale]
+					coordinates {(-1,4) (1,2) (-1,0) (1,-2) (-1,-4)};
+		\ifthenelse{#1=0}
+		{\draw [wiggleHead_colors, scale=\wiggleScale] (0,4) circle (\wiggleHead cm);}
+		{\draw [wiggleHead_colors, scale=\wiggleScale] (-\wiggleHead,4-\wiggleHead) [rounded corners=0.01 cm] rectangle (\wiggleHead,4+\wiggleHead); (\wiggleHead cm);}
+	}}
+	%,wiggle/.style args={#1#2}{code={...}} % For next style of pic
+}
+
+\node [mem] (mem1) at (0,0) {};
+\node [actor] (act1) [above=-\actorSize*0.5 cm of mem1,label=above:{Actor1}] {};
+	\pic [above=-\actorSize*0 cm of act1.center] {wiggle=0};
+\node [obj] (obj1a) [below=0 of mem1.center,anchor=center] {};
+
+\node [mem] (mem2) at (7,0) {};
+\node [actor_square] (act2) [above=-\actorSize*0.5 cm of mem2,label=above:{Actor2}] {};
+	\pic [above=-\actorSize*0 cm of act2.center]{wiggle=1};
+
+
+\end{tikzpicture}
+
+\end{document}

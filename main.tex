@@ -1,0 +1,377 @@
+% version 0.96
+
+\documentclass[10pt]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+%\setlength{\parindent}{0pt} % no auto indent
+
+% CLICKABLE LINKS IN TOC,CITE,REF, ETC.
+%\usepackage[hidelinks]{hyperref}
+
+% TABLES
+\usepackage{tabularx,booktabs,multirow,bigdelim} % for big parenthesis on side of table
+\usepackage[table]{xcolor}
+
+% GRAPHICS
+\usepackage{graphicx}
+\graphicspath{{images/}}
+
+% BIBLIOGRAPHY
+\usepackage[bibstyle=nature, citestyle=numeric-comp]{biblatex}
+%\usepackage{natbib}
+%\bibliographystyle{plain} % plain
+\bibliography{references}
+
+% APPENDICES
+\usepackage[toc,page]{appendix}
+
+% CHAPTER STYLE
+\usepackage{titlesec}
+\titleformat{\chapter}{\normalfont\huge}{\thechapter.}{20pt}{\huge\bf}
+
+% TIKZ
+\usepackage{tikz}
+\usepackage{pgf}
+\usetikzlibrary{trees}
+\usetikzlibrary{shadows,positioning}
+
+% COLORS
+\usepackage{color}
+\definecolor{eclipseBlue}{RGB}{42,0.0,255}
+\definecolor{eclipseGreen}{RGB}{63,127,95}
+\definecolor{eclipsePurple}{RGB}{127,0,85}
+\definecolor{codeListingBackground}{gray}{0.95}
+
+% CODE LISTINGS
+\usepackage{listings}
+\usepackage{caption,subcaption}
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+%% Define Language
+\lstdefinelanguage{Encore}
+{
+  morekeywords={
+	active,
+	case,catch,chain,class,data,
+	def,do,
+	eos,else,end,exception,
+	finally,for,fun,
+	get,getNext,
+	if,import,in,
+	let,linear,
+	match,module,new,
+	print,println,
+	qualified,
+	return,require,
+	shared,stream,
+	then,this,throw,trait,try,typedef,
+	unless,unsafe,
+	val,var,
+	when,where,while,with,
+	yield
+  },
+  sensitive=true, % keywords are not case-sensitive
+  morecomment=[l]{--}, % l is for line comment
+  morestring=[b]" % defines that strings are enclosed in double quotes
+}
+
+\lstdefinelanguage{Scala}
+{
+  morekeywords={
+  match, case, object, class, extends,
+  sealed, trait, =>
+  },
+  sensitive=true, % keywords are not case-sensitive
+  morecomment=[l]{--}, % l is for line comment
+  morestring=[b]" % defines that strings are enclosed in double quotes
+}
+
+%\lstset{numbers=left,xleftmargin=2em,frame=single,framexleftmargin=1.5em}
+
+\lstset{
+%  language={Encore},
+  basicstyle=\footnotesize\ttfamily, % Global Code Style
+  backgroundcolor=,%\color{codeListingBackground},
+  captionpos=b, % Position of the Caption (t for top, b for bottom)
+  extendedchars=true, % Allows 256 instead of 128 ASCII characters
+  tabsize=1, % number of spaces indented when discovering a tab 
+  columns=fixed, % make all characters equal width
+  keepspaces=true, % does not ignore spaces to fit width, convert tabs to spaces
+  showstringspaces=false, % lets spaces in strings appear as real spaces
+  breaklines=true, % wrap lines if they don't fit
+  frame=none, % e.g. none/tbrl/single/lines. tbrl = draw a frame at the top, right, left and bottom of the listing.
+  xleftmargin=2ex,
+  framexleftmargin=0pt,
+  framexrightmargin=0pt,
+  framextopmargin=0pt,
+  framexbottommargin=0pt, 
+  frameround=ffff, % make the frame round at all four corners
+  framesep=0pt, % quarter circle size of the round corners
+  numbers=left, %left, % show line numbers at the left
+  numberstyle=\color{eclipseBlue}\tiny\ttfamily, % style of the line numbers
+  numbersep=3pt, % distance between numbers and code
+  commentstyle=\color{eclipseGreen}, % style of comments
+  keywordstyle=\bf, % style of keywords \color{eclipsePurple}
+  stringstyle=, % style of strings \color{eclipseBlue}
+  showlines=true,
+}
+
+\lstdefinestyle{encattachment} {
+  language=Encore,
+  frame=none,
+  captionpos=t,
+  numbers=none,
+  frame=tbrl,
+  framexleftmargin=2pt,
+  framexrightmargin=2pt,
+  framextopmargin=2pt,
+  framexbottommargin=2pt, 
+}
+
+
+% CUSTOM COMMANDS
+\def\code#1{\texttt{#1}} % Code-esque text
+\def\todo#1{\textcolor{blue}{\{TODO: #1\}}}
+\def\name#1{\textsc{#1}} % Proper nouns, names, logos, names of programming languages
+
+\title{
+    {Algebraic data types in Encore:}\\
+    {reconciling objection-oriented and functional programming}\\
+    {Uppsala University}
+}
+
+\author{Micael Loberg}
+\date{\today}
+
+\begin{document}
+\pagenumbering{roman}
+
+\maketitle
+
+\newpage\newpage
+%\vspace*{\fill}
+{\centering \textit{This page intentionally left blank}\par}
+\vspace{\fill}
+
+
+\chapter*{Abstract}
+TODO
+
+\newpage\newpage
+%\vspace*{\fill}
+{\centering \textit{This page intentionally left blank}\par}
+\vspace{\fill}
+
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\chapter{Introduction}
+Encore is an object-oriented programming language developed at Uppsala University blah blah
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Background}
+\label{ch:background}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{encore}
+TODO
+\subsection{Algebraic Data Types}
+Algebraic data types (ADTs) are used to define composite data.  Data structures can in type theory be described in terms of products, sums and recursive types. This leads to an algebra for describing data structures (hence Algebraic Data Types). Such data types are common in functional languages, such as ML or Haskell.
+\\
+\\
+Robert Harper describes \textbf{Products} of types in the book \textit{'Practical Foundations for Programming Languages'} as the following:
+\\
+\\
+\textit{"The binary \textbf{product} of two types consists of ordered pairs of values, one from each type in the order specified. The associated eliminatory forms are projections, which select the first and second component of a pair. The nullary product, or unit, type consists solely of the unique “null tuple” of no values, and has no associated eliminatory form."}
+\\
+\\
+\textbf{Sums} of products can be seen as the choice of two or more variants of a data structure, both producs and sums can be seen in the following example of a polymorphic binary tree.  Here Tree is the name of the type and Nil and Branch are constructors that are used to create new instances of type Tree and t is a type variable.  The type Tree is also recursive as it is defined in terms of itself.
+\\
+\\
+\begin{lstlisting}[language=Haskell,caption={Binary tree definition in Haskell},label={lst:e4c_syntax}]
+data Tree t = Nil
+            | Branch t (Tree t) (Tree t)
+\end{lstlisting}
+\subsubsection{ADTs In Functional Languages}% (this section has more become something like 'ADTs vs Classes' :/ )
+In most functional languages there are no objects, so the primary method of defining composite data is with Algebraic Data Types.
+\\
+\\
+Though ADTs is in no way equivalent with classes. Some of the major differences is mutability. Instance variables in a class is generally mutable while values in an ADT is not. Another distinction is that Algebraic Data Types allow for both sums and products while classes only allows for products.
+\\
+\\
+ADTs also expose their insides to the world in a way that classes do not. This allows the programmer to perform pattern matching on the structure of an Algebraic Data Type. Pattern matching on the structure of types is also a feature that is mostly found in Functional languages and is critical to work with ADTs an effective manner.
+\subsubsection{ADTs In Imperative/OO Languages}
+While Algebraic Data Types is mostly found in functional languages there are examples of imperative languages that features them. Perhaps most notably in Scala.
+\\
+\\
+Algebraic Data Types in Scala comes in the form of Variant types. A binary tree in Scala could have the following definition:
+\\
+\\
+
+\begin{lstlisting}[language=Scala,caption={ADT definition in Scala},label={lst:e4c_syntax}]
+sealed trait Tree[+T]
+case object Nil extends Tree[Nothing]
+case class Branch[T](value:T, left:Tree[T], right:Tree[T]) extends Tree[T]
+\end{lstlisting}
+Noteworthy here is that the ADT is defined in terms of a Trait and classes extending the trait.  A sealed trait is a special kind of trait that can only be extended in the same file as it is defined.  A case class is mostly a normal class with a few differences such as its being immutable.  Case classes can also be used in pattern matching:
+\begin{lstlisting}[language=Scala,caption={Pattern matching on an ADT in Scala}]
+tree match {
+    case Branch(value, left, right) => Foo()
+    case Nil()  => Bar()
+}
+\end{lstlisting}
+One can easily see the similarities of this implementation and the one in listing $1.1$. Here Tree is the new type, Nil and Branch could be seen as constructors for the type Tree.
+\\
+\\
+By using the scheme of traits and classes to create something that looks and behaves a lot like an ADT Scala have created objects and are both sum and product types, and the fact that case classes can be used in destructured pattern matching allows for allows for programming patterns normally found only in functional languages.
+\chapter{Problem -- encoding is bad}
+TODO
+\chapter{Design}
+TODO
+\subsection{Syntax}
+The syntax for ADTs have gone through a number of iterations before we settled on the final one described below.
+It is inspired by the syntax Scale use for its Variant types, but modified to fit in with the rest of the Encore language.
+
+An adt is defined by using the keyword \'data\', followed by an identifier starting with a capital letter.
+\begin{lstlisting}[language=Encore]
+data Foo
+\end{lstlisting}
+A branch (or constructor?) of an ADT is defined as following:
+\begin{lstlisting}[language=Encore]
+case Bar(valueA : t1, valueB : t2) : Foo
+\end{lstlisting}
+where \texttt{Bar} is the name of the branch, \texttt{valueA} and \texttt{valueB} are the fields of type t1 and t2, \texttt{:Foo} lets the compiler know that \texttt{Bar} is a branch of \texttt{Foo}.
+A branch does not have to be defined on the line following the ADT, but anywhere as long as it is in the same file.
+Both ADTs and its branches can define methods. Methods are defined on a new indented line under the ADT/branch definition.
+A ADT or branch that have methods defined needs to be closed with the \texttt{end} keyword.
+\begin{lstlisting}[language=encore,caption={ADT definition with a method}]
+data Foo
+  def Bar() : unit
+    --methodbody
+  end
+end
+\end{lstlisting}
+ADTs can also take optional type parameters. Type parameters are defined with a comma separated list within brackets
+\begin{lstlisting}[language=encore,caption={Generic linked list implemented with an ADT}]
+data List[t]
+case Node[t](value : t, next : List[t]) : List[t]
+case Nil[t]() : List[t]
+\end{lstlisting}
+To create an instance of a branch you call the constructor functions that is generated for each of the branches.
+A instance of a \texttt{Node} can be created like this:
+\begin{lstlisting}[language=encore,caption={Declaration of a list containing one element}]
+let
+  list = Node(1, Nil())
+in
+  --body
+end
+\end{lstlisting}
+ADTs can be used in pattern matching expressions
+\begin{lstlisting}[language=encore,caption={Pattern matching on a linked list}]
+match list with
+  case Node(value, next) => Foo()
+  case Nil() => Bar()
+end
+\end{lstlisting}
+\subsection{Behaviour}
+As ADTs and their branches gets desugared to read only traits and classes they can do everything traits and classes are capable of.
+Methods that are declared inside of the ADT declaration ends up in the trait as required methods, and methods declared in the branch end up in the class. It's however worth to note that in the current state of Encore, when you call a constructor function for a branch you will get an object with the type of the trait back. So right now it's not possible to ever call a method on an ADT branch. This can quite easily be solved by adding a few more features to Encore, this I will discuss in chapter 6.
+\\\\As mentioned above, the classes and traits generated are read only, this means that the values held by an ADT branch are immutable.  The main motivation for them being immutable is that it is what I believe most users will expect from an ADT as its a language feature mostly found in functional languages. It also makes them safe to pass around between different actors as no actor is able to modify it.\\\\
+\chapter{Implementation}
+
+\subsection{Implementation via desugaring}
+The Encore compiler is written in Haskell and generates C code as output which is then piped into Clang to generate executable code. The Encore compiler has a desugaring phase that can be used to turn the ADT nodes in the Abstract Syntax Tree (AST) into class and trait nodes. Methods that are used as constructors for the different branches will also be created.\\\\
+The following linked list implemented with an ADT
+
+\begin{lstlisting}[language=encore,caption={Linked list before it has been desugared}]
+data List[t]
+case Node[t](value : t, next : List[t]) : List[t]
+case Last[t](value : t) : List[t]
+\end{lstlisting}
+
+will after the desugaring phase be transformed to the following trait, classes and methods.
+
+\begin{lstlisting}[language=encore,caption={Desugared linked list}]
+fun Node[t](value : t, next : List[t]) : List[t]
+  new Node[t](value, next)
+end
+
+fun Last[t](value : t) : List[t]
+  new Last[t](value)
+end
+
+read trait List[t]
+  require def Last() : Maybe[t]
+  require def Node() : Maybe[(t, List[t])]
+end
+
+read class Node[t] : List[t](value, next)
+  val value : t
+  val next : List[t]
+
+  def init(value : t, next : List[t]) : unit
+    this.value = value
+    this.next = next
+  end
+
+  def Last() : Maybe[t]
+    Nothing
+  end
+
+  def Node() : Maybe[(t, List[t])]
+    Just((this.value, this.next))
+  end
+end
+
+read class Last[t] : List[t](value)
+  val value : t
+
+  def init(value : t) : unit
+    this.value = value
+  end
+
+  def Last() : Maybe[t]
+    Just(this.value)
+  end
+
+  def Node() : Maybe[(t, List[t])]
+    Nothing
+  end
+end
+\end{lstlisting}
+
+The trait generated on lines $9-12$ requires that the classes implements extractor methods, one for each branch of the ADT\@. The extractor methods are used in pattern matching, in this case they are \texttt{Node()} and \texttt{Last()}
+
+\subsection{Pattern matching optimization}
+TODO
+
+\chapter{Evaluation and discussion}
+TODO
+\section{Expressive power}
+TODO
+\subsection{Some cool example}
+TODO
+\subsection{Performance}
+TODO
+\subsubsection{Benchmark}
+TODO
+\chapter{Conclusion and Future work}
+TODO
+
+%#Källor:
+%http://www.cs.cmu.edu/~rwh/pfpl.html
+\printbibliography
+
+\begin{appendices}
+\end{appendices}
+
+\end{document}

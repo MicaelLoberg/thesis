@@ -1,0 +1,9 @@
+data List[t]
+case Node[t](value : t, next : List[t]) : List[t]
+case Nil[t]() : List[t]
+
+class Main
+  def main() : unit
+    ()
+  end
+end
