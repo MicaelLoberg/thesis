@@ -1,4 +1,11 @@
-% version 0.96
+%Notes to myself:
+%ABS:
+%   http://abs-models.org/documentation/manual/#sec:algebraic-data-types
+%   http://delivery.acm.org/10.1145/3130000/3122848/a76-boer.pdf?ip=130.238.252.224&id=3122848&acc=ACTIVE%20SERVICE&key=74F7687761D7AE37%2EDA50417A8F734F4C%2E4D4702B0C3E38B35%2E4D4702B0C3E38B35&CFID=1012165178&CFTOKEN=22086748&__acm__=1512138297_7db1453bc51abbd04fa38d02cff9f460 Page >= 11
+%
+%
+%
+%
 
 \documentclass[10pt]{report}
 
@@ -52,24 +59,24 @@
 \lstdefinelanguage{Encore}
 {
   morekeywords={
-	active,
-	case,catch,chain,class,data,
-	def,do,
-	eos,else,end,exception,
-	finally,for,fun,
-	get,getNext,
-	if,import,in,
-	let,linear,
-	match,module,new,
-	print,println,
-	qualified,
-	return,require,
-	shared,stream,
-	then,this,throw,trait,try,typedef,
-	unless,unsafe,
-	val,var,
-	when,where,while,with,
-	yield
+  active,
+  case,catch,chain,class,data,
+  def,do,
+  eos,else,end,exception,
+  finally,for,fun,
+  get,getNext,
+  if,import,in,
+  let,linear,
+  match,module,new,
+  print,println,
+  qualified,
+  return,require,
+  shared,stream,
+  then,this,throw,trait,try,typedef,
+  unless,unsafe,
+  val,var,
+  when,where,while,with,
+  yield
   },
   sensitive=true, % keywords are not case-sensitive
   morecomment=[l]{--}, % l is for line comment
@@ -95,7 +102,7 @@
   backgroundcolor=,%\color{codeListingBackground},
   captionpos=b, % Position of the Caption (t for top, b for bottom)
   extendedchars=true, % Allows 256 instead of 128 ASCII characters
-  tabsize=1, % number of spaces indented when discovering a tab 
+  tabsize=1, % number of spaces indented when discovering a tab
   columns=fixed, % make all characters equal width
   keepspaces=true, % does not ignore spaces to fit width, convert tabs to spaces
   showstringspaces=false, % lets spaces in strings appear as real spaces
@@ -105,7 +112,7 @@
   framexleftmargin=0pt,
   framexrightmargin=0pt,
   framextopmargin=0pt,
-  framexbottommargin=0pt, 
+  framexbottommargin=0pt,
   frameround=ffff, % make the frame round at all four corners
   framesep=0pt, % quarter circle size of the round corners
   numbers=left, %left, % show line numbers at the left
@@ -126,7 +133,7 @@
   framexleftmargin=2pt,
   framexrightmargin=2pt,
   framextopmargin=2pt,
-  framexbottommargin=2pt, 
+  framexbottommargin=2pt,
 }
 
 
@@ -169,7 +176,6 @@ TODO
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 \chapter{Introduction}
-Encore is an object-oriented programming language developed at Uppsala University blah blah
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \pagenumbering{arabic}
@@ -183,6 +189,7 @@ Encore is an object-oriented programming language developed at Uppsala Universit
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{encore}
+Encore is an object-oriented programming language developed at Uppsala University blah blah
 TODO
 \subsection{Algebraic Data Types}
 Algebraic data types (ADTs) are used to define composite data.  Data structures can in type theory be described in terms of products, sums and recursive types. This leads to an algebra for describing data structures (hence Algebraic Data Types). Such data types are common in functional languages, such as ML or Haskell.
@@ -233,7 +240,90 @@ One can easily see the similarities of this implementation and the one in listin
 \\
 \\
 By using the scheme of traits and classes to create something that looks and behaves a lot like an ADT Scala have created objects and are both sum and product types, and the fact that case classes can be used in destructured pattern matching allows for allows for programming patterns normally found only in functional languages.
-\chapter{Problem -- encoding is bad}
+\chapter{Encoding ADTs in Encore}
+\subsection{Encoding scheme}
+\par{\noindent In Encore it is possible to emulate the behaviour of ADTs using a scheme of traits and classes.}\cite{gustavL}%TODO: add reference to Gustav Lundins paper
+\par{\noindent An implementation of a linked list in Encore could consist of the two classes \texttt{Node} and \texttt{Last}, both of which implements a trait \texttt{LinkedList}\\}
+\par{\noindent Classes can implement destructor methods that exposes the internal structure of an object which can then be used in pattern matching. If the trait \texttt{LinkedList} requires the classes who implements the trait to also implement destructor methods, an object of type \texttt{LinkedList} can be used in pattern matching}
+
+\begin{lstlisting}[language=encore,caption={trait LinkedList that requires classes to implement destructor methods}]
+trait LinkedList[t]
+  require def Node() : Maybe[(t, LinkedList)]
+  require def Last() : Maybe[(t)]
+end
+\end{lstlisting}
+\par{\noindent An object of type \texttt{Node} will implement both of the extractor methods \texttt{Node()} and \texttt{Last}. The method \texttt{Node()} will return a \texttt{Just} with a tuple consisting of the internal objects to be exposed, in this case \texttt{value} and \texttt{next} while the method \texttt{Last()} will return \texttt{Nothing}}
+
+\par{\noindent Similarly an object of type \texttt{Last} will also implement both extractor methods \texttt{Node()} and \texttt{Last()}. Though here the method \texttt{Node()} will return \texttt{Nothing} while \texttt{Last()} returns \texttt{Just(value).}}
+
+
+\begin{lstlisting}[language=encore,caption={Implementation of Node and Last classes}]
+read class Node[t] : List[t](value, next)
+  val value : t
+  val next : List[t]
+
+  def init(value : t, next : List[t]) : unit
+    this.value = value
+    this.next = next
+  end
+
+  def Last() : Maybe[t]
+    Nothing
+  end
+
+  def Node() : Maybe[(t, List[t])]
+    Just((this.value, this.next))
+  end
+end
+
+read class Last[t] : List[t](value)
+  val value : t
+
+  def init(value : t) : unit
+    this.value = value
+  end
+
+  def Last() : Maybe[t]
+    Just(this.value)
+  end
+
+  def Node() : Maybe[(t, List[t])]
+    Nothing
+  end
+end
+\end{lstlisting}
+
+\par{\noindent To make the classes \texttt{Node} and \texttt{Last} look more like branches of an ADT and hide the fact that they are classes, we also add constructor functions to create the objects for us.}
+
+\begin{lstlisting}[language=encore,caption={Constructor functions for Node and Last}]
+fun Node[t](value : t, next : List[t]) : List[t]
+  new Node[t](value, next)
+end
+
+fun Last[t](value : t) : List[t]
+  new Last[t](value)
+end
+\end{lstlisting}
+
+A LinkedList containing the values $[1, 2, 3]$ can now be created like this
+\begin{lstlisting}[language=encore,caption={Creation of list containing three elements}]
+var list = Node(1, Node(2, Last(3)))
+\end{lstlisting}
+
+The variable \texttt{list} can now be used in pattern matching
+
+\begin{lstlisting}[language=encore,caption={Function that uses pattern matching to calculate the length of a list}]
+fun listLength[t](list : List[t]) : int
+  match list with
+    case Node(value, next) => 1 + listLength(next)
+    case Last(value) => 1
+  end
+end
+\end{lstlisting}
+
+\par{\noindent Now we have something that looks and behaves a lot like an ADT in for example Haskell. We have functions that creates the objects for us and hides the fact that we're creating an object from a class and we can perform pattern matching on the structure of of the object.}
+
+\subsection{Problems with encoding}
 TODO
 \chapter{Design}
 TODO
@@ -289,8 +379,8 @@ Methods that are declared inside of the ADT declaration ends up in the trait as 
 \chapter{Implementation}
 
 \subsection{Implementation via desugaring}
-The Encore compiler is written in Haskell and generates C code as output which is then piped into Clang to generate executable code. The Encore compiler has a desugaring phase that can be used to turn the ADT nodes in the Abstract Syntax Tree (AST) into class and trait nodes. Methods that are used as constructors for the different branches will also be created.\\\\
-The following linked list implemented with an ADT
+\par{\noindent The Encore compiler is written in Haskell and generates C code as output which is then piped into Clang to generate executable code. The Encore compiler has a desugaring phase that can be used to turn the ADT nodes in the Abstract Syntax Tree (AST) into class and trait nodes. Methods that are used as constructors for the different branches will also be created.\\\\}
+\par{\noindent The following linked list implemented with an ADT}
 
 \begin{lstlisting}[language=encore,caption={Linked list before it has been desugared}]
 data List[t]
@@ -298,17 +388,9 @@ case Node[t](value : t, next : List[t]) : List[t]
 case Last[t](value : t) : List[t]
 \end{lstlisting}
 
-will after the desugaring phase be transformed to the following trait, classes and methods.
+\par{\noindent will after the desugaring phase be transformed to the following trait, classes and methods.}
 
 \begin{lstlisting}[language=encore,caption={Desugared linked list}]
-fun Node[t](value : t, next : List[t]) : List[t]
-  new Node[t](value, next)
-end
-
-fun Last[t](value : t) : List[t]
-  new Last[t](value)
-end
-
 read trait List[t]
   require def Last() : Maybe[t]
   require def Node() : Maybe[(t, List[t])]
@@ -347,9 +429,22 @@ read class Last[t] : List[t](value)
     Nothing
   end
 end
+
+fun Node[t](value : t, next : List[t]) : List[t]
+  new Node[t](value, next)
+end
+
+fun Last[t](value : t) : List[t]
+  new Last[t](value)
+end
+
 \end{lstlisting}
 
-The trait generated on lines $9-12$ requires that the classes implements extractor methods, one for each branch of the ADT\@. The extractor methods are used in pattern matching, in this case they are \texttt{Node()} and \texttt{Last()}
+\par{\noindent The trait generated on lines $X-YY$ requires that the classes implements extractor methods, one for each branch of the ADT\@. The extractor methods are used in pattern matching and their purpose will be discussed in the next chapter. In this case the extractor methods are \texttt{Node()} and \texttt{Last()}.\\}
+
+\par{\noindent Every branch in the ADT will be transformed into a class containing the fields contained in the branch, a constructor method and extractor methods for all the branches of the ADT.\\}
+
+\par{\noindent A creator function for each branch will also be created. These are used as a syntactic sugar to create instances of the ADTs branches and hide the fact that they are implemented as classes.}
 
 \subsection{Pattern matching optimization}
 TODO
@@ -371,7 +466,18 @@ TODO
 %http://www.cs.cmu.edu/~rwh/pfpl.html
 \printbibliography
 
+\chapter{References}
+
+
+\begin{thebibliography}{9}
+\bibitem{gustavL} 
+Gustav Lundin
+\textit{Pattern Matching in Encore}. 
+http://www.diva-portal.org/smash/get/diva2:930151/FULLTEXT01.pdf
+ 
+\end{thebibliography}
+
+
 \begin{appendices}
 \end{appendices}
-
 \end{document}
