@@ -53,7 +53,7 @@
 % CODE LISTINGS
 \usepackage{listings}
 \usepackage{caption,subcaption}
-\setcounter{tocdepth}{3}
+\setcounter{tocdepth}{5}
 \setcounter{secnumdepth}{3}
 %% Define Language
 \lstdefinelanguage{Encore}
@@ -175,7 +175,7 @@ TODO
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-\chapter{Introduction}
+\chapter{Background}
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \pagenumbering{arabic}
@@ -183,15 +183,14 @@ TODO
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-\section{Background}
 \label{ch:background}
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{encore}
+\section{Encore}
 Encore is an object-oriented programming language developed at Uppsala University blah blah
 TODO
-\subsection{Algebraic Data Types}
+\section{Algebraic Data Types}
 Algebraic data types (ADTs) are used to define composite data.  Data structures can in type theory be described in terms of products, sums and recursive types. This leads to an algebra for describing data structures (hence Algebraic Data Types). Such data types are common in functional languages, such as ML or Haskell.
 \\
 \\
@@ -208,7 +207,7 @@ Robert Harper describes \textbf{Products} of types in the book \textit{'Practica
 data Tree t = Nil
             | Branch t (Tree t) (Tree t)
 \end{lstlisting}
-\subsubsection{ADTs In Functional Languages}% (this section has more become something like 'ADTs vs Classes' :/ )
+\subsection{ADTs In Functional Languages}% (this section has more become something like 'ADTs vs Classes' :/ )
 In most functional languages there are no objects, so the primary method of defining composite data is with Algebraic Data Types.
 \\
 \\
@@ -216,8 +215,9 @@ Though ADTs is in no way equivalent with classes. Some of the major differences 
 \\
 \\
 ADTs also expose their insides to the world in a way that classes do not. This allows the programmer to perform pattern matching on the structure of an Algebraic Data Type. Pattern matching on the structure of types is also a feature that is mostly found in Functional languages and is critical to work with ADTs an effective manner.
-\subsubsection{ADTs In Imperative/OO Languages}
-While Algebraic Data Types is mostly found in functional languages there are examples of imperative languages that features them. Perhaps most notably in Scala.
+\subsection{ADTs In Imperative/OO Languages}
+\subsubsection{Scala}
+\par{\noindent \\\\While Algebraic Data Types is mostly found in functional languages there are examples of imperative languages that features them. Perhaps most notably in Scala.}
 \\
 \\
 Algebraic Data Types in Scala comes in the form of Variant types. A binary tree in Scala could have the following definition:
@@ -240,6 +240,28 @@ One can easily see the similarities of this implementation and the one in listin
 \\
 \\
 By using the scheme of traits and classes to create something that looks and behaves a lot like an ADT Scala have created objects and are both sum and product types, and the fact that case classes can be used in destructured pattern matching allows for allows for programming patterns normally found only in functional languages.
+\subsubsection{ABS}
+\par{\noindent \\\\The Abstract Behavioral Specification language (ABS) is another language that features ADTs. It is a language that is interesting to look at because just like Encore it is an Object Oriented language that uses the Actor model as its concurrency model. When implementing ADTs in Encore, some design decisions have to be made and looking at another language that were faced with the same design decisions might give some insight of what a good design could be. One such example is that of mutability. In ABS all values held by an ADT is immutable, the reasoning behind this is to make them safe to pass around between different actors and that it makes it easier to reason about the code[lista ut ur referenser fungerar milo]\\}
+\par{\noindent A linked list containing Integers can be defined as\\}
+\begin{lstlisting}[language=encore,caption={Linked list in ABS}]
+data List = Nil
+          | Node(Int value, List tail);
+\end{lstlisting}
+\par{\noindent Names for constructors and their arguments can optionally be omitted, an example is the following implementation of the Bool datatype\\}
+\begin{lstlisting}[language=encore,caption={Actual definition of built-in type Bool}]
+data Bool = True | False;
+\end{lstlisting}
+\par{\noindent If data constructor arguments have names - which needs to be a valid identifier, it defines a function that, when passed a value expressed with the given constructor, return the argument.  The name of an accessor function must be unique in the module it is defined in. It is an error to have multiple accessor functions with the same name, or to have a function definition with the same name as an accessor function.\\}
+
+\begin{lstlisting}[language=encore,caption={Accessor funtion in ABS, variable head on line 5 is assigned 1}]
+data List = Nil
+          | Node(Int head, List tail);
+{
+  List list = List(1, List(2, Nil));
+  Int head = head(list); 
+}
+\end{lstlisting}
+
 \chapter{Encoding ADTs in Encore}
 \subsection{Encoding scheme}
 \par{\noindent In Encore it is possible to emulate the behaviour of ADTs using a scheme of traits and classes.}\cite{gustavL}%TODO: add reference to Gustav Lundins paper
@@ -324,14 +346,16 @@ end
 \par{\noindent Now we have something that looks and behaves a lot like an ADT in for example Haskell. We have functions that creates the objects for us and hides the fact that we're creating an object from a class and we can perform pattern matching on the structure of of the object.}
 
 \subsection{Problems with encoding}
-TODO
+\par{\noindent In the previous section we have seen how we in Encore can emulate the behavior of ADTs by using a scheme of traits, classes, methods and pattern matching. Though this is far from perfect.\\}
+\par{\noindent Perhaps the most noticeable problem is the difference in amount of lines of code needed to create something that behaves like an ADT in Encore compared to languages that has ADTs as actual types.\\}
+\par{\noindent Another problem is the cost of doing pattern matching on classes. Consider the extractor method \texttt{Node()} on line 30 in listing 2.2.\\ The purpose of the method is to tell if a given \texttt{List} is of type \texttt{Node} or not. The value it returns is a \texttt{Maybe} type, holding a tuple that contains the values a \texttt{Node} wants to expose. Memory for both the Maybe and the Tuple types needs to be allocated for and the fields from the Node needs to be copied over to the tuple. All of this adds a considerable amount to the runtime of an application that does a lot of pattern matching.\\}
+\par{\noindent Both of these problems could be fixed by extending Encore and adding ADTs to the language. A more compact syntax and a better optimized method of performing pattern matching could be designed.}
 \chapter{Design}
 TODO
 \subsection{Syntax}
-The syntax for ADTs have gone through a number of iterations before we settled on the final one described below.
-It is inspired by the syntax Scale use for its Variant types, but modified to fit in with the rest of the Encore language.
+\par{\noindent The syntax for ADTs have gone through a number of iterations before we settled on the final one described below.  It is inspired by the syntax Scala use for its Variant types, but modified to fit in with the rest of the Encore language.\\}
 
-An adt is defined by using the keyword \'data\', followed by an identifier starting with a capital letter.
+\par{\noindent An ADT is defined by using the keyword \texttt{data}, followed by an identifier starting with a capital letter.}
 \begin{lstlisting}[language=Encore]
 data Foo
 \end{lstlisting}
@@ -342,7 +366,7 @@ case Bar(valueA : t1, valueB : t2) : Foo
 where \texttt{Bar} is the name of the branch, \texttt{valueA} and \texttt{valueB} are the fields of type t1 and t2, \texttt{:Foo} lets the compiler know that \texttt{Bar} is a branch of \texttt{Foo}.
 A branch does not have to be defined on the line following the ADT, but anywhere as long as it is in the same file.
 Both ADTs and its branches can define methods. Methods are defined on a new indented line under the ADT/branch definition.
-A ADT or branch that have methods defined needs to be closed with the \texttt{end} keyword.
+An ADT or branch that have methods defined needs to be closed with the \texttt{end} keyword.
 \begin{lstlisting}[language=encore,caption={ADT definition with a method}]
 data Foo
   def Bar() : unit
