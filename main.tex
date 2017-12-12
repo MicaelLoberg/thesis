@@ -295,7 +295,7 @@ data List = Nil
 \subsection{Encoding scheme}
 \par{\noindent In Encore it is possible to emulate the behaviour of ADTs using a scheme of traits and classes.}\cite{gustavL}%TODO: add reference to Gustav Lundins paper
 \par{\noindent An implementation of a linked list in Encore could consist of the two classes \texttt{Node} and \texttt{Last}, both of which implements a trait \texttt{LinkedList}\\}
-\par{\noindent Classes can implement destructor methods that exposes the internal structure of an object which can then be used in pattern matching. If the trait \texttt{LinkedList} requires the classes who implements the trait to also implement destructor methods, an object of type \texttt{LinkedList} can be used in pattern matching}
+\par{\noindent Classes can implement destructor methods \KIKO{what is a destructor method?} that exposes the internal structure of an object which can then be used in pattern matching. If the trait \texttt{LinkedList} requires the classes who implements the trait to also implement destructor methods, an object of type \texttt{LinkedList} can be used in pattern matching}
 
 \begin{lstlisting}[language=encore,caption={trait LinkedList that requires classes to implement destructor methods}]
 trait LinkedList[t]
@@ -303,9 +303,13 @@ trait LinkedList[t]
   require def Last() : Maybe[(t)]
 end
 \end{lstlisting}
-\par{\noindent An object of type \texttt{Node} will implement both of the extractor methods \texttt{Node()} and \texttt{Last}. The method \texttt{Node()} will return a \texttt{Just} with a tuple consisting of the internal objects to be exposed, in this case \texttt{value} and \texttt{next} while the method \texttt{Last()} will return \texttt{Nothing}}
+\par{\noindent An object of type \texttt{Node} will implement both of the extractor methods \texttt{Node()} and \texttt{Last} \KIKO{or Last() with parenthesis?}. The method \texttt{Node()} will return a \texttt{Just} \KIKO{what is a Just? maybe better to phrase it as: will return an option type ... [maybe add reference to option types if you think that it is not clear what they are.]}with a tuple consisting of the internal objects to be exposed, in this case \texttt{value} and \texttt{next} while the method \texttt{Last()} will return \texttt{Nothing}}
 
 \par{\noindent Similarly an object of type \texttt{Last} will also implement both extractor methods \texttt{Node()} and \texttt{Last()}. Though here the method \texttt{Node()} will return \texttt{Nothing} while \texttt{Last()} returns \texttt{Just(value).}}
+\KIKO{I didn't know that you were referencing a listing. You should mention that somewhere.
+  To reference a listing, just add the label="my-label" inside the [] of the listing and reference
+  in the normal style.}
+
 
 
 \begin{lstlisting}[language=encore,caption={Implementation of Node and Last classes}]
@@ -345,6 +349,8 @@ end
 \end{lstlisting}
 
 \par{\noindent To make the classes \texttt{Node} and \texttt{Last} look more like branches of an ADT and hide the fact that they are classes, we also add constructor functions to create the objects for us.}
+\KIKO{The example works quite nicely. However, you never mention if what you are explaining already exists in Encore or if it's your contribution. I think it would be good if you add a line after the citation of Gustav's works that clearly states that, with the current Encore, you can emulate ADTs and you provide your explanation, which was good.}
+
 
 \begin{lstlisting}[language=encore,caption={Constructor functions for Node and Last}]
 fun Node[t](value : t, next : List[t]) : List[t]
@@ -377,8 +383,9 @@ end
 \subsection{Problems with encoding}
 \par{\noindent In the previous section we have seen how we in Encore can emulate the behavior of ADTs by using a scheme of traits, classes, methods and pattern matching. Though this is far from perfect.\\}
 \par{\noindent Perhaps the most noticeable problem is the difference in amount of lines of code needed to create something that behaves like an ADT in Encore compared to languages that has ADTs as actual types.\\}
-\par{\noindent Another problem is the cost of doing pattern matching on classes. Consider the extractor method \texttt{Node()} on line 30 in listing 2.2.\\ The purpose of the method is to tell if a given \texttt{List} is of type \texttt{Node} or not. The value it returns is a \texttt{Maybe} type, holding a tuple that contains the values a \texttt{Node} wants to expose. Memory for both the Maybe and the Tuple types needs to be allocated for and the fields from the Node needs to be copied over to the tuple. All of this adds a considerable amount to the runtime of an application that does a lot of pattern matching.\\}
+\par{\noindent Another problem is the cost of doing pattern matching on classes. Consider the extractor method \texttt{Node()} on line 30 in listing 2.2. \KIKO{Never hard-code numbers, always use references.}\\ The purpose of the method is to tell if a given \texttt{List} is of type \texttt{Node} or not. The value it returns is a \texttt{Maybe} type, holding a tuple that contains the values a \texttt{Node} wants to expose. Memory for both the Maybe and the Tuple types needs to be allocated for and the fields from the Node needs to be copied over to the tuple. All of this adds a considerable amount to the runtime of an application that does a lot of pattern matching.\\}
 \par{\noindent Both of these problems could be fixed by extending Encore and adding ADTs to the language. A more compact syntax and a better optimized method of performing pattern matching could be designed.}
+\KIKO{This last paragraph could be re-phrased as your contributions: Given these problems, we fix them by using a more compact syntax and optimised pattern matching, etc. I think it will look better.}
 \chapter{Design}
 TODO
 \subsection{Syntax}
