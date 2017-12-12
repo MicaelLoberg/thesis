@@ -388,10 +388,18 @@ end
 \KIKO{This last paragraph could be re-phrased as your contributions: Given these problems, we fix them by using a more compact syntax and optimised pattern matching, etc. I think it will look better.}
 \chapter{Design}
 TODO
+
+\KIKO{Maybe in this phase you can explain the phases that the compiler has and
+  why you decided to do things in the desugaring and code gen phases. The advantages
+of this design choice, etc.}
+
 \subsection{Syntax}
 \par{\noindent The syntax for ADTs have gone through a number of iterations before we settled on the final one described below.  It is inspired by the syntax Scala use for its Variant types, but modified to fit in with the rest of the Encore language.\\}
 
 \par{\noindent An ADT is defined by using the keyword \texttt{data}, followed by an identifier starting with a capital letter.}
+
+\KIKO{It's nice that you described this but maybe you could use BNF notation to be more explicit. After that, you provide your explanation.}
+
 \begin{lstlisting}[language=Encore]
 data Foo
 \end{lstlisting}
@@ -433,6 +441,7 @@ match list with
 end
 \end{lstlisting}
 \subsection{Behaviour}
+\KIKO{This sentence assumes that you have already explained that ADTs get desugared into read only traits, which I think you added and has not been mentioned before. Maybe switching the paragraph below by this one almost fixes that... it's a mix of both :) }
 As ADTs and their branches gets desugared to read only traits and classes they can do everything traits and classes are capable of.
 Methods that are declared inside of the ADT declaration ends up in the trait as required methods, and methods declared in the branch end up in the class. It's however worth to note that in the current state of Encore, when you call a constructor function for a branch you will get an object with the type of the trait back. So right now it's not possible to ever call a method on an ADT branch. This can quite easily be solved by adding a few more features to Encore, this I will discuss in chapter 6.
 \\\\As mentioned above, the classes and traits generated are read only, this means that the values held by an ADT branch are immutable.  The main motivation for them being immutable is that it is what I believe most users will expect from an ADT as its a language feature mostly found in functional languages. It also makes them safe to pass around between different actors as no actor is able to modify it.\\\\
