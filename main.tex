@@ -136,6 +136,7 @@
   framexbottommargin=2pt,
 }
 
+\newcommand{\KIKO}[1]{\textcolor{red}{\textbf{[Kiko: #1]}}}
 
 % CUSTOM COMMANDS
 \def\code#1{\texttt{#1}} % Code-esque text
@@ -189,8 +190,11 @@ TODO
 
 \section{Encore}
 Encore is an object-oriented programming language developed at Uppsala University blah blah
+\KIKO{Don't forget to reference~\cite{brandauer:2015:POM}}
 TODO
 \section{Algebraic Data Types}
+\KIKO{I think it may be better if you switch the approach: functional languages use ADTs to describe...
+Potentially, you should reference the original paper, which seems to be "A history of Haskell: being lazy with class", according to Wikipedia}
 Algebraic data types (ADTs) are used to define composite data.  Data structures can in type theory be described in terms of products, sums and recursive types. This leads to an algebra for describing data structures (hence Algebraic Data Types). Such data types are common in functional languages, such as ML or Haskell.
 \\
 \\
@@ -200,27 +204,34 @@ Robert Harper describes \textbf{Products} of types in the book \textit{'Practica
 \textit{"The binary \textbf{product} of two types consists of ordered pairs of values, one from each type in the order specified. The associated eliminatory forms are projections, which select the first and second component of a pair. The nullary product, or unit, type consists solely of the unique “null tuple” of no values, and has no associated eliminatory form."}
 \\
 \\
-\textbf{Sums} of products can be seen as the choice of two or more variants of a data structure, both producs and sums can be seen in the following example of a polymorphic binary tree.  Here Tree is the name of the type and Nil and Branch are constructors that are used to create new instances of type Tree and t is a type variable.  The type Tree is also recursive as it is defined in terms of itself.
-\\
-\\
+\KIKO{What are sums of no products? You are defining sum of products but what about just sums?}
+\textbf{Sums} of products can be seen as the choice of two or more variants of a data structure, \KIKO{instead of "," , this is either a "." or a ";"} both producs and sums can be seen in the following example of a polymorphic binary tree \KIKO{I would add here: Listing~\ref{lst:e4c_syntax} reference}.  Here Tree is the name of the type and Nil and Branch are constructors that are used to create new instances of type Tree and t is a type variable.  The type Tree is also recursive as it is defined in terms of itself.
+\KIKO{use verbatim or other font for Tree, Nil, t, etc since you are referring to code.}
+
+
 \begin{lstlisting}[language=Haskell,caption={Binary tree definition in Haskell},label={lst:e4c_syntax}]
 data Tree t = Nil
             | Branch t (Tree t) (Tree t)
 \end{lstlisting}
 \subsection{ADTs In Functional Languages}% (this section has more become something like 'ADTs vs Classes' :/ )
+\KIKO{I found this paper, which seems relevant: https://dl.acm.org/citation.cfm?doid=1094811.1094814, "Generalized algebraic data types and object-oriented programming"}
+\KIKO{I find this introduction a bit abrupt. Maybe ADTs started in the functional setting to solve a problem and you can continue from there.}
 In most functional languages there are no objects, so the primary method of defining composite data is with Algebraic Data Types.
-\\
-\\
+
+\KIKO{What do you mean? This first sentence is not clear.}
 Though ADTs is in no way equivalent with classes. Some of the major differences is mutability. Instance variables in a class is generally mutable while values in an ADT is not. Another distinction is that Algebraic Data Types allow for both sums and products while classes only allows for products.
-\\
-\\
+\KIKO{Maybe I am mistaken but Animal<t> has subclasses Cat<t> and Dog<t>. Can a polymorphic class be considered sum type? I am not saying that it is, I am asking.}
+
 ADTs also expose their insides to the world in a way that classes do not. This allows the programmer to perform pattern matching on the structure of an Algebraic Data Type. Pattern matching on the structure of types is also a feature that is mostly found in Functional languages and is critical to work with ADTs an effective manner.
 \subsection{ADTs In Imperative/OO Languages}
 \subsubsection{Scala}
+
+\KIKO{In general, you are using the "\\" too often. I don't think you should be using it, at all.}
+
 \par{\noindent \\\\While Algebraic Data Types is mostly found in functional languages there are examples of imperative languages that features them. Perhaps most notably in Scala.}
 \\
 \\
-Algebraic Data Types in Scala comes in the form of Variant types. A binary tree in Scala could have the following definition:
+Algebraic Data Types in Scala comes in the form of Variant types \KIKO{Missing reference here. the reader doesn't know what Variant types are and she cannot find them without a reference}. A binary tree in Scala could have the following definition:
 \\
 \\
 
@@ -229,18 +240,19 @@ sealed trait Tree[+T]
 case object Nil extends Tree[Nothing]
 case class Branch[T](value:T, left:Tree[T], right:Tree[T]) extends Tree[T]
 \end{lstlisting}
-Noteworthy here is that the ADT is defined in terms of a Trait and classes extending the trait.  A sealed trait is a special kind of trait that can only be extended in the same file as it is defined.  A case class is mostly a normal class with a few differences such as its being immutable.  Case classes can also be used in pattern matching:
+Noteworthy here is that the ADT is defined in terms of a Trait and classes extending the trait \KIKO{Can you assume that the reader knows what is a trait or do you want to write a one line sentence that explains it?}. \KIKO{In Scala} A sealed trait is a special kind of trait that can only be extended in the same file as it is defined.  A case class is mostly a normal class with a few differences such as its being immutable \KIKO{Great if you could add references to this concepts}.  Case classes can also be used in pattern matching:
 \begin{lstlisting}[language=Scala,caption={Pattern matching on an ADT in Scala}]
 tree match {
     case Branch(value, left, right) => Foo()
     case Nil()  => Bar()
 }
 \end{lstlisting}
-One can easily see the similarities of this implementation and the one in listing $1.1$. Here Tree is the new type, Nil and Branch could be seen as constructors for the type Tree.
+One can easily see the similarities of this implementation and the one in listing $1.1$ \KIKO{use \\ref\{your-listing\}}. Here Tree is the new type, Nil and Branch could be seen as constructors for the type Tree. \KIKO{use verbatim font for Nil, Branch, etc.}
 \\
 \\
 By using the scheme of traits and classes to create something that looks and behaves a lot like an ADT Scala have created objects and are both sum and product types, and the fact that case classes can be used in destructured pattern matching allows for allows for programming patterns normally found only in functional languages.
 \subsubsection{ABS}
+\KIKO{You should add the reference to ABS language}
 \par{\noindent \\\\The Abstract Behavioral Specification language (ABS) is another language that features ADTs. It is a language that is interesting to look at because just like Encore it is an Object Oriented language that uses the Actor model as its concurrency model. When implementing ADTs in Encore, some design decisions have to be made and looking at another language that were faced with the same design decisions might give some insight of what a good design could be. One such example is that of mutability. In ABS all values held by an ADT is immutable, the reasoning behind this is to make them safe to pass around between different actors and that it makes it easier to reason about the code[lista ut ur referenser fungerar milo]\\}
 \par{\noindent A linked list containing Integers can be defined as\\}
 \begin{lstlisting}[language=encore,caption={Linked list in ABS}]
@@ -248,19 +260,36 @@ data List = Nil
           | Node(Int value, List tail);
 \end{lstlisting}
 \par{\noindent Names for constructors and their arguments can optionally be omitted, an example is the following implementation of the Bool datatype\\}
+
+% KIKO: I would recomment that listings have a \label as well, e.g.
+\begin{lstlisting}[language=encore,caption={Actual definition of built-in type Bool},label=test-kiko]
+data Bool = True | False;
+\end{lstlisting}
+Test Kiko~\ref{test-kiko}
+
 \begin{lstlisting}[language=encore,caption={Actual definition of built-in type Bool}]
 data Bool = True | False;
 \end{lstlisting}
-\par{\noindent If data constructor arguments have names - which needs to be a valid identifier, it defines a function that, when passed a value expressed with the given constructor, return the argument.  The name of an accessor function must be unique in the module it is defined in. It is an error to have multiple accessor functions with the same name, or to have a function definition with the same name as an accessor function.\\}
+\par{\noindent If data constructor arguments have names - which needs to be a valid identifier, it defines a function that, when passed a value expressed with the given constructor, return the argument \KIKO{It's not clear to me what you mean with this sentence above (first sentence)}.  The name of an accessor function must be unique in the module it is defined in. It is an error to have multiple accessor functions with the same name, or to have a function definition with the same name as an accessor function.\\}
 
 \begin{lstlisting}[language=encore,caption={Accessor funtion in ABS, variable head on line 5 is assigned 1}]
 data List = Nil
           | Node(Int head, List tail);
 {
   List list = List(1, List(2, Nil));
-  Int head = head(list); 
+  Int head = head(list);
 }
 \end{lstlisting}
+
+
+\KIKO{Overall: I think that you have done a nice job introducing the most important elements but,
+  I get the feeling that the reading is not quite fluent yet. I think it's nice how you defined ADTs, and then
+  put them in the functional and OO context. However, some parts introduce ideas a bit abruptly, IMO,
+  and you should take some time to re-structure the text and put things in context. I believe you should
+  also introduce one line sentence for concepts that you take for granted, e.g. traits, which is not something
+  that all OOP languages have.}
+\KIKO{Grammar-wise, be careful when you talk in singular and plural: e.g. ADTs is in no way equivalent with classes -- it should be -- ADTs are in no way equivalent with classes. I have seen this mistake more than
+5 times in chapter 1, and it happens from the singular to plural case and vice versa. Use "is" when you talk about a single thing and "are" when you talk about many things :)}
 
 \chapter{Encoding ADTs in Encore}
 \subsection{Encoding scheme}
@@ -494,11 +523,11 @@ TODO
 
 
 \begin{thebibliography}{9}
-\bibitem{gustavL} 
+\bibitem{gustavL}
 Gustav Lundin
-\textit{Pattern Matching in Encore}. 
+\textit{Pattern Matching in Encore}.
 http://www.diva-portal.org/smash/get/diva2:930151/FULLTEXT01.pdf
- 
+
 \end{thebibliography}
 
 
