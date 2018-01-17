@@ -25,7 +25,7 @@
 \graphicspath{{images/}}
 
 % BIBLIOGRAPHY
-\usepackage[bibstyle=nature, citestyle=numeric-comp]{biblatex}
+%\usepackage[bibstyle=nature, citestyle=numeric-comp]{biblatex}
 %\usepackage{natbib}
 %\bibliographystyle{plain} % plain
 \bibliography{references}
@@ -55,6 +55,9 @@
 \usepackage{caption,subcaption}
 \setcounter{tocdepth}{5}
 \setcounter{secnumdepth}{3}
+\setlength{\parindent}{0pt}
+\hangafter=0
+\usepackage[parfill]{parskip}
 %% Define Language
 \lstdefinelanguage{Encore}
 {
@@ -77,6 +80,16 @@
   val,var,
   when,where,while,with,
   yield
+  },
+  sensitive=true, % keywords are not case-sensitive
+  morecomment=[l]{--}, % l is for line comment
+  morestring=[b]" % defines that strings are enclosed in double quotes
+}
+\lstdefinelanguage{C}
+{
+  morekeywords={
+  int64_t, void, list_t, if, else, NULL, 
+  sealed, trait, =>
   },
   sensitive=true, % keywords are not case-sensitive
   morecomment=[l]{--}, % l is for line comment
@@ -122,6 +135,7 @@
   keywordstyle=\bf, % style of keywords \color{eclipsePurple}
   stringstyle=, % style of strings \color{eclipseBlue}
   showlines=true,
+  linewidth=20cm,
 }
 
 \lstdefinestyle{encattachment} {
@@ -164,7 +178,7 @@
 
 
 \chapter*{Abstract}
-TODO
+\par{Encore is an object-oriented programming language that has a focus on implementing concurrent and parallel systems and it is using the Actor model. Unlike traditional object-oriented programming languages objects in Encore has their own thread of control. Encore also has passive objects which lack their own thread of control, these are mainly used to create data structures such as lists or trees and are used inside of active objects. This thesis presents Algebraic Data Types (ADTs) as a complement to passive classes, and explores how this construct normally found in functional languages can be a useful addition to a object-oriented language such as Encore. The implementation take advantage of the fact that the Encore compiler has a desugaring phase where the ADT syntax is transformed to passive classes. The paper also discusses the design of the syntax and the behaviour of Algebraic Data Types with concurrent and parallel systems in mind. Optimization has also been made to how pattern matching is done when used together with Algebraic Data Types.}
 
 \newpage\newpage
 %\vspace*{\fill}
@@ -192,113 +206,94 @@ he gives a brief intro and the project goal. Right after that, the background}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Encore}
-Encore is an object-oriented programming language developed at Uppsala University blah blah
-\KIKO{Don't forget to reference~\cite{brandauer:2015:POM}}
-TODO
+\par{Encore is an object-oriented programming language that is being developed at Uppsala University\cite{Encore}. It has a focus on implementing concurrent and parallel systems and it is using the Actor model. Encore has active objects that have their own thread of control and they can communicate with each other through message passing. Encore also has passive objects; these lack their own thread of control and behaves like objects in more traditional object-oriented programming languages such as C++ or Java. Passive objects are mainly used to create data structures such as lists or trees and are used inside of active objects\ldots} %TODO: write moar stuffs!
 \section{Algebraic Data Types}
-\KIKO{I think it may be better if you switch the approach: functional languages use ADTs to describe...
-Potentially, you should reference the original paper, which seems to be "A history of Haskell: being lazy with class", according to Wikipedia}
-Algebraic data types (ADTs) are used to define composite data.  Data structures can in type theory be described in terms of products, sums and recursive types. This leads to an algebra for describing data structures (hence Algebraic Data Types). Such data types are common in functional languages, such as ML or Haskell.
-\\
-\\
-Robert Harper describes \textbf{Products} of types in the book \textit{'Practical Foundations for Programming Languages'} as the following:
-\\
-\\
-\textit{"The binary \textbf{product} of two types consists of ordered pairs of values, one from each type in the order specified. The associated eliminatory forms are projections, which select the first and second component of a pair. The nullary product, or unit, type consists solely of the unique “null tuple” of no values, and has no associated eliminatory form."}
-\\
-\\
-\KIKO{What are sums of no products? You are defining sum of products but what about just sums?}
-\textbf{Sums} of products can be seen as the choice of two or more variants of a data structure, \KIKO{instead of "," , this is either a "." or a ";"} both producs and sums can be seen in the following example of a polymorphic binary tree \KIKO{I would add here: Listing~\ref{lst:e4c_syntax} reference}.  Here Tree is the name of the type and Nil and Branch are constructors that are used to create new instances of type Tree and t is a type variable.  The type Tree is also recursive as it is defined in terms of itself.
-\KIKO{use verbatim or other font for Tree, Nil, t, etc since you are referring to code.}
+\par{In functional languages we often use Algebraic data types (ADTs) to describe composite data. Data structures can in type theory be described in terms of products, sums and recursive types. This leads to an algebra for describing data structures (hence Algebraic Data Types). Such data types are common in functional languages, such as ML or Haskell.}
+
+\par{Robert Harper describes \textbf{Products} of types in the book \textit{'Practical Foundations for Programming Languages'} as the following:}
+
+\par{\textit{"The binary \textbf{product} of two types consists of ordered pairs of values, one from each type in the order specified. The associated eliminatory forms are projections, which select the first and second component of a pair. The nullary product, or unit, type consists solely of the unique “null tuple” of no values, and has no associated eliminatory form."}}
+\par{An example of a product type is a tuple consisting of a \code{bool} and an \code{int}, \code{(bool, int)}. Assuming an 8 bit integer the \code{int} part of the tuple can assume 256 different values, and a boolean can have two different values (\code{true} and \code{false}). So a tuple of this type can assume a total of 512 different values.}
+\par{\textbf{Sums} of types can be seen as the choice of two or more variants of a data structure. Some type \code{Foo} could be defined as the choice between a \code{int} or a \code{bool}. In Haskell this could be defined as \code{data Foo = bool | int}. If an integer can have 256 different values and a boolean two; the type \code{Foo} which is defined as the choice between the two can take on a total of 258 different values.}
+
+%TODO: Make listing work
+\par{An example of a data structure that is both a sum and product type can be seen in listing~\ref{lst:e4c_syntax}. It is an example of a polymorphic binary tree implemented using ADTs. Here \code{Tree} is the name of the type and \code{Nil} and \code{Branch} are constructors that are used to create new instances of type \code{Tree} and \code{t} is a type variable. The type \code{Tree} is also recursive as it is defined in terms of itself.}
 
 
 \begin{lstlisting}[language=Haskell,caption={Binary tree definition in Haskell},label={lst:e4c_syntax}]
 data Tree t = Nil
             | Branch t (Tree t) (Tree t)
 \end{lstlisting}
-\subsection{ADTs In Functional Languages}% (this section has more become something like 'ADTs vs Classes' :/ )
-\KIKO{I found this paper, which seems relevant: https://dl.acm.org/citation.cfm?doid=1094811.1094814, "Generalized algebraic data types and object-oriented programming"}
-\KIKO{I find this introduction a bit abrupt. Maybe ADTs started in the functional setting to solve a problem and you can continue from there.}
-In most functional languages there are no objects, so the primary method of defining composite data is with Algebraic Data Types.
+%\subsection{ADTs In Functional Languages}% (this section has more become something like 'ADTs vs Classes' :/ )
+%\par{In the C programming language sum types can be created using unions, product types can be created with structs and types can be recursive by also holding a pointer to its own type. In the previous chapter we saw how ADTs can be used to create both sum and product types, as well as recursive types. Most functional languages does not all of these other constructs, so the primary method of defining composite data is with Algebraic Data Types}
 
-\KIKO{What do you mean? This first sentence is not clear.}
-Though ADTs is in no way equivalent with classes. Some of the major differences is mutability. Instance variables in a class is generally mutable while values in an ADT is not. Another distinction is that Algebraic Data Types allow for both sums and products while classes only allows for products.
-\KIKO{Maybe I am mistaken but Animal<t> has subclasses Cat<t> and Dog<t>. Can a polymorphic class be considered sum type? I am not saying that it is, I am asking.}
+%\KIKO{I found this paper, which seems relevant: https://dl.acm.org/citation.cfm?doid=1094811.1094814, "Generalized algebraic data types and object-oriented programming"}
+%\KIKO{I find this introduction a bit abrupt. Maybe ADTs started in the functional setting to solve a problem and you can continue from there.}
+%In most functional languages there are no objects, so the primary method of defining composite data is with Algebraic Data Types.
 
-ADTs also expose their insides to the world in a way that classes do not. This allows the programmer to perform pattern matching on the structure of an Algebraic Data Type. Pattern matching on the structure of types is also a feature that is mostly found in Functional languages and is critical to work with ADTs an effective manner.
+%\KIKO{What do you mean? This first sentence is not clear.}
+%Though ADTs is in no way equivalent with classes. Some of the major differences is mutability. Instance variables in a class is generally mutable while values in an ADT is not. Another distinction is that Algebraic Data Types allow for both sums and products while classes only allows for products.
+%\KIKO{Maybe I am mistaken but Animal<t> has subclasses Cat<t> and Dog<t>. Can a polymorphic class be considered sum type? I am not saying that it is, I am asking.}
+
+%ADTs also expose their insides to the world in a way that classes do not. This allows the programmer to perform pattern matching on the structure of an Algebraic Data Type. Pattern matching on the structure of types is also a feature that is mostly found in Functional languages and is critical to work with ADTs an effective manner.
 \subsection{ADTs In Imperative/OO Languages}
 \subsubsection{Scala}
 
-\KIKO{In general, you are using the "\\" too often. I don't think you should be using it, at all.}
 
-\par{\noindent \\\\While Algebraic Data Types is mostly found in functional languages there are examples of imperative languages that features them. Perhaps most notably in Scala.}
-\\
-\\
-Algebraic Data Types in Scala comes in the form of Variant types \KIKO{Missing reference here. the reader doesn't know what Variant types are and she cannot find them without a reference}. A binary tree in Scala could have the following definition:
-\\
-\\
+\par{While Algebraic Data Types is mostly found in functional languages there are examples of imperative languages that features them. Perhaps most notably in Scala.}
+\par{A binary tree in Scala could have the following definition:}
 
 \begin{lstlisting}[language=Scala,caption={ADT definition in Scala},label={lst:e4c_syntax}]
 sealed trait Tree[+T]
 case object Nil extends Tree[Nothing]
 case class Branch[T](value:T, left:Tree[T], right:Tree[T]) extends Tree[T]
 \end{lstlisting}
-Noteworthy here is that the ADT is defined in terms of a Trait and classes extending the trait \KIKO{Can you assume that the reader knows what is a trait or do you want to write a one line sentence that explains it?}. \KIKO{In Scala} A sealed trait is a special kind of trait that can only be extended in the same file as it is defined.  A case class is mostly a normal class with a few differences such as its being immutable \KIKO{Great if you could add references to this concepts}.  Case classes can also be used in pattern matching:
-\begin{lstlisting}[language=Scala,caption={Pattern matching on an ADT in Scala}]
+\par{Noteworthy here is that the ADT is defined in terms of a Trait and classes extending the trait. In Scala a sealed trait is a special kind of trait that can only be extended in the same file as it is defined. A case class is mostly a normal class with a few differences such as its being immutable\cite{ScalaCase}. Case classes can also be used in pattern matching:}
+\begin{lstlisting}[language=Scala,caption={Pattern matching on an ADT in Scala},label=scala-match]
 tree match {
     case Branch(value, left, right) => Foo()
     case Nil()  => Bar()
 }
 \end{lstlisting}
-One can easily see the similarities of this implementation and the one in listing $1.1$ \KIKO{use \\ref\{your-listing\}}. Here Tree is the new type, Nil and Branch could be seen as constructors for the type Tree. \KIKO{use verbatim font for Nil, Branch, etc.}
-\\
-\\
-By using the scheme of traits and classes to create something that looks and behaves a lot like an ADT Scala have created objects and are both sum and product types, and the fact that case classes can be used in destructured pattern matching allows for allows for programming patterns normally found only in functional languages.
+\par{One can easily see the similarities of this implementation and the one in listing \ref{scala-match}. Here \code{Tree} is the new type, \code{Nil} and \code{Branch} could be seen as constructors for the type \code{Tree}.}
+\par{By using the scheme of traits and classes to create something that looks and behaves a lot like an ADT Scala have created objects and are both sum and product types, and the fact that case classes can be used in destructured pattern matching allows for allows for programming patterns normally found only in functional languages.}
 \subsubsection{ABS}
-\KIKO{You should add the reference to ABS language}
-\par{\noindent \\\\The Abstract Behavioral Specification language (ABS) is another language that features ADTs. It is a language that is interesting to look at because just like Encore it is an Object Oriented language that uses the Actor model as its concurrency model. When implementing ADTs in Encore, some design decisions have to be made and looking at another language that were faced with the same design decisions might give some insight of what a good design could be. One such example is that of mutability. In ABS all values held by an ADT is immutable, the reasoning behind this is to make them safe to pass around between different actors and that it makes it easier to reason about the code[lista ut ur referenser fungerar milo]\\}
-\par{\noindent A linked list containing Integers can be defined as\\}
+\par{The Abstract Behavioral Specification language\cite{ABS} (ABS) is another language that features ADTs. It is a language that is interesting to look at because just like Encore it is an Object Oriented language that uses the Actor model as its concurrency model. When implementing ADTs in Encore, some design decisions have to be made and looking at another language that were faced with the same design decisions might give some insight of what a good design could be. One such example is that of mutability. In ABS all values held by an ADT is immutable, the reasoning behind this is to make them safe to pass around between different actors and that it makes it easier to reason about the code\cite{ABSmut}}
+\par{A linked list containing Integers can be defined as}
 \begin{lstlisting}[language=encore,caption={Linked list in ABS}]
 data List = Nil
           | Node(Int value, List tail);
 \end{lstlisting}
-\par{\noindent Names for constructors and their arguments can optionally be omitted, an example is the following implementation of the Bool datatype\\}
+\par{Names for constructors and their arguments can optionally be omitted, an example is the following implementation of the Bool datatyp\}
 
 % KIKO: I would recomment that listings have a \label as well, e.g.
 \begin{lstlisting}[language=encore,caption={Actual definition of built-in type Bool},label=test-kiko]
 data Bool = True | False;
 \end{lstlisting}
-Test Kiko~\ref{test-kiko}
 
 \begin{lstlisting}[language=encore,caption={Actual definition of built-in type Bool}]
 data Bool = True | False;
 \end{lstlisting}
-\par{\noindent If data constructor arguments have names - which needs to be a valid identifier, it defines a function that, when passed a value expressed with the given constructor, return the argument \KIKO{It's not clear to me what you mean with this sentence above (first sentence)}.  The name of an accessor function must be unique in the module it is defined in. It is an error to have multiple accessor functions with the same name, or to have a function definition with the same name as an accessor function.\\}
+\par{If data constructor arguments have names, like \code{head} and \code{tail} in listing \ref{abs-list} - it defines a function that, when passed a value expressed with the given constructor, return the argument.  The name of an accessor function must be unique in the module it is defined in. It is an error to have multiple accessor functions with the same name, or to have a function definition with the same name as an accessor function.}
 
-\begin{lstlisting}[language=encore,caption={Accessor funtion in ABS, variable head on line 5 is assigned 1}]
+\begin{lstlisting}[language=encore,caption={Accessor funtion in ABS},label=abs-list]
 data List = Nil
           | Node(Int head, List tail);
 {
   List list = List(1, List(2, Nil));
-  Int head = head(list);
+  Int head = head(list); #Variable head is assigned the value 1
 }
 \end{lstlisting}
 
 
-\KIKO{Overall: I think that you have done a nice job introducing the most important elements but,
-  I get the feeling that the reading is not quite fluent yet. I think it's nice how you defined ADTs, and then
-  put them in the functional and OO context. However, some parts introduce ideas a bit abruptly, IMO,
-  and you should take some time to re-structure the text and put things in context. I believe you should
-  also introduce one line sentence for concepts that you take for granted, e.g. traits, which is not something
-  that all OOP languages have.}
 \KIKO{Grammar-wise, be careful when you talk in singular and plural: e.g. ADTs is in no way equivalent with classes -- it should be -- ADTs are in no way equivalent with classes. I have seen this mistake more than
 5 times in chapter 1, and it happens from the singular to plural case and vice versa. Use "is" when you talk about a single thing and "are" when you talk about many things :)}
 
 \chapter{Encoding ADTs in Encore}
 \subsection{Encoding scheme}
-\par{\noindent In Encore it is possible to emulate the behaviour of ADTs using a scheme of traits and classes.}\cite{gustavL}%TODO: add reference to Gustav Lundins paper
-\par{\noindent An implementation of a linked list in Encore could consist of the two classes \texttt{Node} and \texttt{Last}, both of which implements a trait \texttt{LinkedList}\\}
-\par{\noindent Classes can implement destructor methods \KIKO{what is a destructor method?} that exposes the internal structure of an object which can then be used in pattern matching. If the trait \texttt{LinkedList} requires the classes who implements the trait to also implement destructor methods, an object of type \texttt{LinkedList} can be used in pattern matching}
+\par{In Encore it is currently possible to emulate the behaviour of ADTs using a scheme of traits and classes.}\cite{gustavL}%TODO: add reference to Gustav Lundins paper
+\par{An implementation of a linked list in Encore could consist of the two classes \code{Node} and \code{Last}, both of which implements a trait \code{LinkedList}}
+\par{Classes can implement extractor methods that exposes the internal structure of an object which can then be used in pattern matching. If the trait \code{LinkedList} requires the classes who implements the trait to also implement destructor methods, an object of type \code{LinkedList} can be used in pattern matching}
 
 \begin{lstlisting}[language=encore,caption={trait LinkedList that requires classes to implement destructor methods}]
 trait LinkedList[t]
@@ -306,16 +301,11 @@ trait LinkedList[t]
   require def Last() : Maybe[(t)]
 end
 \end{lstlisting}
-\par{\noindent An object of type \texttt{Node} will implement both of the extractor methods \texttt{Node()} and \texttt{Last} \KIKO{or Last() with parenthesis?}. The method \texttt{Node()} will return a \texttt{Just} \KIKO{what is a Just? maybe better to phrase it as: will return an option type ... [maybe add reference to option types if you think that it is not clear what they are.]}with a tuple consisting of the internal objects to be exposed, in this case \texttt{value} and \texttt{next} while the method \texttt{Last()} will return \texttt{Nothing}}
+\par{The class \code{Node} in listing \ref{encoding-scheme} will implement both of the extractor methods \code{Node()} and \code{Last()}. The method \code{Node()} will return an option type containing a tuple consisting of the internal objects to be exposed, in this case \code{value} and \code{next} while the method \code{Last()} will return \code{Nothing}}
 
-\par{\noindent Similarly an object of type \texttt{Last} will also implement both extractor methods \texttt{Node()} and \texttt{Last()}. Though here the method \texttt{Node()} will return \texttt{Nothing} while \texttt{Last()} returns \texttt{Just(value).}}
-\KIKO{I didn't know that you were referencing a listing. You should mention that somewhere.
-  To reference a listing, just add the label="my-label" inside the [] of the listing and reference
-  in the normal style.}
+\par{Similarly an object of type \code{Last} (listing \ref{encoding-scheme}) will also implement both extractor methods \code{Node()} and \code{Last()}. Though here the method \code{Node()} will return \code{Nothing} while \code{Last()} returns \code{Just(value).}}
 
-
-
-\begin{lstlisting}[language=encore,caption={Implementation of Node and Last classes}]
+\begin{lstlisting}[language=encore,caption={Implementation of Node and Last classes},label=encoding-scheme]
 read class Node[t] : List[t](value, next)
   val value : t
   val next : List[t]
@@ -351,9 +341,7 @@ read class Last[t] : List[t](value)
 end
 \end{lstlisting}
 
-\par{\noindent To make the classes \texttt{Node} and \texttt{Last} look more like branches of an ADT and hide the fact that they are classes, we also add constructor functions to create the objects for us.}
-\KIKO{The example works quite nicely. However, you never mention if what you are explaining already exists in Encore or if it's your contribution. I think it would be good if you add a line after the citation of Gustav's works that clearly states that, with the current Encore, you can emulate ADTs and you provide your explanation, which was good.}
-
+\par{To make the classes \code{Node} and \code{Last} look more like branches of an ADT and hide the fact that they are classes, we also add constructor functions to create the objects for us.}
 
 \begin{lstlisting}[language=encore,caption={Constructor functions for Node and Last}]
 fun Node[t](value : t, next : List[t]) : List[t]
@@ -365,12 +353,12 @@ fun Last[t](value : t) : List[t]
 end
 \end{lstlisting}
 
-A LinkedList containing the values $[1, 2, 3]$ can now be created like this
+\par{A LinkedList containing the values $[1, 2, 3]$ can now be created like this}
 \begin{lstlisting}[language=encore,caption={Creation of list containing three elements}]
 var list = Node(1, Node(2, Last(3)))
 \end{lstlisting}
 
-The variable \texttt{list} can now be used in pattern matching
+\par{The variable \code{list} can now be used in pattern matching}
 
 \begin{lstlisting}[language=encore,caption={Function that uses pattern matching to calculate the length of a list}]
 fun listLength[t](list : List[t]) : int
@@ -381,14 +369,13 @@ fun listLength[t](list : List[t]) : int
 end
 \end{lstlisting}
 
-\par{\noindent Now we have something that looks and behaves a lot like an ADT in for example Haskell. We have functions that creates the objects for us and hides the fact that we're creating an object from a class and we can perform pattern matching on the structure of of the object.}
+\par{Now we have something that looks and behaves a lot like an ADT in for example Haskell. We have functions that creates the objects for us and hides the fact that we're creating an object from a class and we can perform pattern matching on the structure of of the object.}
 
-\subsection{Problems with encoding}
-\par{\noindent In the previous section we have seen how we in Encore can emulate the behavior of ADTs by using a scheme of traits, classes, methods and pattern matching. Though this is far from perfect.\\}
-\par{\noindent Perhaps the most noticeable problem is the difference in amount of lines of code needed to create something that behaves like an ADT in Encore compared to languages that has ADTs as actual types.\\}
-\par{\noindent Another problem is the cost of doing pattern matching on classes. Consider the extractor method \texttt{Node()} on line 30 in listing 2.2. \KIKO{Never hard-code numbers, always use references.}\\ The purpose of the method is to tell if a given \texttt{List} is of type \texttt{Node} or not. The value it returns is a \texttt{Maybe} type, holding a tuple that contains the values a \texttt{Node} wants to expose. Memory for both the Maybe and the Tuple types needs to be allocated for and the fields from the Node needs to be copied over to the tuple. All of this adds a considerable amount to the runtime of an application that does a lot of pattern matching.\\}
-\par{\noindent Both of these problems could be fixed by extending Encore and adding ADTs to the language. A more compact syntax and a better optimized method of performing pattern matching could be designed.}
-\KIKO{This last paragraph could be re-phrased as your contributions: Given these problems, we fix them by using a more compact syntax and optimised pattern matching, etc. I think it will look better.}
+\subsection{Problems with encoding} \label{problems}
+\par{In the previous section we have seen how we in Encore can emulate the behavior of ADTs by using a scheme of traits, classes, methods and pattern matching. Though this is far from perfect.}
+\par{Perhaps the most noticeable problem is the difference in amount of lines of code needed to create something that behaves like an ADT in Encore compared to languages that has ADTs as actual types.}
+\par{Another problem is the cost of doing pattern matching on classes. Consider the extractor method \code{Node()} on line 30 in listing~\ref{encoding-scheme}. The purpose of the method is to tell if a given \code{List} is of type \code{Node} or not. The value it returns is a \code{Maybe} type, holding a tuple that contains the values a \code{Node} wants to expose. Memory for both the Maybe and the Tuple types needs to be allocated for and the fields from the Node needs to be copied over to the tuple. All of this adds a considerable amount to the runtime of an application that does a lot of pattern matching.}
+\par{Given these problems we fix them by extending Encore and adding ADTs to the language. A more compact syntax and a better optimized method of performing pattern matching is designed.}
 \chapter{Design}
 TODO
 
@@ -397,11 +384,25 @@ TODO
 of this design choice, etc.}
 
 \subsection{Syntax}
-\par{\noindent The syntax for ADTs have gone through a number of iterations before we settled on the final one described below.  It is inspired by the syntax Scala use for its Variant types, but modified to fit in with the rest of the Encore language.\\}
+\par{The syntax for ADTs have gone through a number of iterations before we settled on the final one described below.  It is inspired by the syntax Scala use for its ADTs, but modified to fit in with the rest of the Encore language. The grammar of the syntax can be seen in listing~\ref{BNF} in Extended BNF form\cite{eBNF}}%TODO: wikipedia ref to ebnf
 
-\par{\noindent An ADT is defined by using the keyword \texttt{data}, followed by an identifier starting with a capital letter.}
+\begin{lstlisting}[language=Encore,caption={Grammar for the suggested syntax},label=BNF,mathescape=true]
+AdtDeclaration ::= "data", AdtIdentifier, Body
+AdtIdentifier ::= Identifier, TypeParams
+Identifier ::= (*any capitalized word*)
 
-\KIKO{It's nice that you described this but maybe you could use BNF notation to be more explicit. After that, you provide your explanation.}
+TypeParams ::= $\epsilon$ | "[", Param, "]"
+Param ::= varName | typeVar, ",", Param
+varName ::= (*any lower case word*)
+
+ADTBranch ::= "case", AdtIdentifier, "("Fields")",
+                ":", AdtIdentifier, Body
+Body ::= $\epsilon$ | MethodDeclaration, {MethodDeclaration}, "end"
+Fields ::= $\epsilon$ | Field
+Field  ::= varName, ":" Type, | varName, ":", Type, ",", Field
+\end{lstlisting}
+
+\par{An ADT is defined by using the keyword \code{data}, followed by an identifier starting with a capital letter.}
 
 \begin{lstlisting}[language=Encore]
 data Foo
@@ -410,10 +411,10 @@ A branch (or constructor?) of an ADT is defined as following:
 \begin{lstlisting}[language=Encore]
 case Bar(valueA : t1, valueB : t2) : Foo
 \end{lstlisting}
-where \texttt{Bar} is the name of the branch, \texttt{valueA} and \texttt{valueB} are the fields of type t1 and t2, \texttt{:Foo} lets the compiler know that \texttt{Bar} is a branch of \texttt{Foo}.
+\par{where \code{Bar} is the name of the branch, \code{valueA} and \code{valueB} are the fields of type t1 and t2, \code{:Foo} lets the compiler know that \code{Bar} is a branch of \code{Foo}.
 A branch does not have to be defined on the line following the ADT, but anywhere as long as it is in the same file.
 Both ADTs and its branches can define methods. Methods are defined on a new indented line under the ADT/branch definition.
-An ADT or branch that have methods defined needs to be closed with the \texttt{end} keyword.
+An ADT or branch that have methods defined needs to be closed with the \code{end} keyword.}
 \begin{lstlisting}[language=encore,caption={ADT definition with a method}]
 data Foo
   def Bar() : unit
@@ -421,14 +422,14 @@ data Foo
   end
 end
 \end{lstlisting}
-ADTs can also take optional type parameters. Type parameters are defined with a comma separated list within brackets
+\par{ADTs can also take optional type parameters. Type parameters are defined with a comma separated list within brackets}
 \begin{lstlisting}[language=encore,caption={Generic linked list implemented with an ADT}]
 data List[t]
 case Node[t](value : t, next : List[t]) : List[t]
 case Nil[t]() : List[t]
 \end{lstlisting}
-To create an instance of a branch you call the constructor functions that is generated for each of the branches.
-A instance of a \texttt{Node} can be created like this:
+\par{To create an instance of a branch you call the constructor functions that is generated for each of the branches.
+A instance of a \code{Node} can be created like this:}
 \begin{lstlisting}[language=encore,caption={Declaration of a list containing one element}]
 let
   list = Node(1, Nil())
@@ -436,7 +437,7 @@ in
   --body
 end
 \end{lstlisting}
-ADTs can be used in pattern matching expressions
+\par{ADTs can be used in pattern matching expressions}
 \begin{lstlisting}[language=encore,caption={Pattern matching on a linked list}]
 match list with
   case Node(value, next) => Foo()
@@ -444,15 +445,13 @@ match list with
 end
 \end{lstlisting}
 \subsection{Behaviour}
-\KIKO{This sentence assumes that you have already explained that ADTs get desugared into read only traits, which I think you added and has not been mentioned before. Maybe switching the paragraph below by this one almost fixes that... it's a mix of both :) }
-As ADTs and their branches gets desugared to read only traits and classes they can do everything traits and classes are capable of.
-Methods that are declared inside of the ADT declaration ends up in the trait as required methods, and methods declared in the branch end up in the class. It's however worth to note that in the current state of Encore, when you call a constructor function for a branch you will get an object with the type of the trait back. So right now it's not possible to ever call a method on an ADT branch. This can quite easily be solved by adding a few more features to Encore, this I will discuss in chapter 6.
-\\\\As mentioned above, the classes and traits generated are read only, this means that the values held by an ADT branch are immutable.  The main motivation for them being immutable is that it is what I believe most users will expect from an ADT as its a language feature mostly found in functional languages. It also makes them safe to pass around between different actors as no actor is able to modify it.\\\\
+\par{ADTs and their branches gets desugared to read only traits and classes, so they can do everything traits and classes are capable of.  Methods that are declared inside of the ADT declaration ends up in the trait as required methods, and methods declared in the branch end up in the class. It's however worth to note that in the current state of Encore, when you call a constructor function for a branch you will get an object with the type of the trait back. So right now it's not possible to ever call a method on an ADT branch. This can quite easily be solved by adding a few more features to Encore, this I will discuss in chapter 6.}
+\par{As mentioned above, the classes and traits generated are read only, this means that the values held by an ADT branch are immutable.  The main motivation for them being immutable is that it is what I believe most users will expect from an ADT as its a language feature mostly found in functional languages. It also makes them safe to pass around between different actors as no actor is able to modify it.}
 \chapter{Implementation}
 
 \subsection{Implementation via desugaring}
-\par{\noindent The Encore compiler is written in Haskell and generates C code as output which is then piped into Clang to generate executable code. The Encore compiler has a desugaring phase that can be used to turn the ADT nodes in the Abstract Syntax Tree (AST) into class and trait nodes. Methods that are used as constructors for the different branches will also be created.\\\\}
-\par{\noindent The following linked list implemented with an ADT}
+\par{The Encore compiler is written in Haskell and generates C code as output which is then piped into Clang to generate executable code. The Encore compiler has a desugaring phase that can be used to turn the ADT nodes in the Abstract Syntax Tree (AST) into class and trait nodes. Methods that are used as constructors for the different branches will also be created.}
+\par{The following linked list implemented with an ADT}
 
 \begin{lstlisting}[language=encore,caption={Linked list before it has been desugared}]
 data List[t]
@@ -460,9 +459,9 @@ case Node[t](value : t, next : List[t]) : List[t]
 case Last[t](value : t) : List[t]
 \end{lstlisting}
 
-\par{\noindent will after the desugaring phase be transformed to the following trait, classes and methods.}
+\par{will after the desugaring phase be transformed to the following trait, classes and methods.}
 
-\begin{lstlisting}[language=encore,caption={Desugared linked list}]
+\begin{lstlisting}[language=encore,caption={Desugared linked list},label=desugared]
 read trait List[t]
   require def Last() : Maybe[t]
   require def Node() : Maybe[(t, List[t])]
@@ -512,15 +511,57 @@ end
 
 \end{lstlisting}
 
-\par{\noindent The trait generated on lines $X-YY$ requires that the classes implements extractor methods, one for each branch of the ADT\@. The extractor methods are used in pattern matching and their purpose will be discussed in the next chapter. In this case the extractor methods are \texttt{Node()} and \texttt{Last()}.\\}
+\par{The trait \code{List} that has been generated in listing~\ref{desugared} requires that the classes implements extractor methods, one for each branch of the ADT\@. The extractor methods are used in pattern matching and their purpose will be discussed in the next chapter. In this case the extractor methods are \code{Node()} and \code{Last()}.}
 
-\par{\noindent Every branch in the ADT will be transformed into a class containing the fields contained in the branch, a constructor method and extractor methods for all the branches of the ADT.\\}
+\par{Every branch in the ADT will be transformed into a class containing the fields contained in the branch, a constructor method and extractor methods for all the branches of the ADT.}
 
-\par{\noindent A creator function for each branch will also be created. These are used as a syntactic sugar to create instances of the ADTs branches and hide the fact that they are implemented as classes.}
+\par{A creator function for each branch will also be created. These are used as a syntactic sugar to create instances of the ADTs branches and hide the fact that they are implemented as classes.}
 
 \subsection{Pattern matching optimization}
-TODO
+\par{In section~\ref{problems} we see why the current implementation of pattern matching in Encore is not optimal for use with ADTs. Here we will look at the improvements that has been made in this area.}
+\par{Consider the following ADT definition}
 
+\begin{lstlisting}[language=encore]
+data List
+case Node(value : int, next : List) : List
+case Last(value : int) : List
+\end{lstlisting}
+
+\par{Prior to any of my optimizations the extractor methods for \code{Node} would look like the following:}
+
+\begin{lstlisting}[language=encore,caption={Extractor methods before optimization}]
+def Node() : Maybe[(int, List)]
+  Just((this.value, this.next))
+end
+
+def Last() : Maybe[int]
+  Nothing
+end
+\end{lstlisting}
+
+\par{As explained in section~\ref{problems} the problem with this is the return types of the extractor methods. The value it returns is a \code{Maybe} type, holding a tuple that contains the values a \code{Node} wants to expose. Memory for both the Maybe and the Tuple types needs to be allocated for and the fields from the Node needs to be copied over to the tuple.}
+
+
+\begin{lstlisting}[language=encore,caption={Pattern matching on a List},label=listmatch]
+match list with
+  case Node(value, next) => foo()
+  case Last(value) => bar()
+end
+\end{lstlisting}
+
+\par{The code generated from the pattern matching in listing~\ref{listmatch} will generate C code that resembles that of listing~\ref{matchgen}.}
+
+
+\begin{lstlisting}[language=encore,caption={Pattern matching on a List},label=matchgen]
+  insert horrible code here
+\end{lstlisting}
+
+\par{A more efficient way of doing this is to get rid of the option type associated with the extractor methods and instead have them return an integer, 1 if it is a match, 0 otherwise. To avoid having to allocate a tuple and copy values to and from it we instead we make us of typecasts so that the fields can be accessed directly. The code from listing~\ref{listmatch} now generates the following C code}
+
+\begin{lstlisting}[language=encore,caption={Pattern matching on a List},label=matchgen2]
+  insert slightly less horrible code here
+\end{lstlisting}
+\par{By getting rid of the Maybe and Tuple types we make avoid allocating memory on the heap that the garbage collector would have to clean up afterwards.}
 \chapter{Evaluation and discussion}
 TODO
 \section{Expressive power}
@@ -532,11 +573,11 @@ TODO
 \subsubsection{Benchmark}
 TODO
 \chapter{Conclusion and Future work}
-TODO
+\par{ADTs in Encore are cool and/or totally sweet!}
 
 %#Källor:
 %http://www.cs.cmu.edu/~rwh/pfpl.html
-\printbibliography
+%\printbibliography
 
 \chapter{References}
 
@@ -547,6 +588,30 @@ Gustav Lundin
 \textit{Pattern Matching in Encore}.
 http://www.diva-portal.org/smash/get/diva2:930151/FULLTEXT01.pdf
 
+\bibitem{eBNF}
+Wikipedia
+\textit{Extended BNF}
+https://en.wikipedia.org/wiki/Extended\_Backus\%E2\%80\%93Naur\_form
+
+\bibitem{ABS}
+Einar Broch JohnsenReiner HähnleJan SchäferRudolf SchlatteMartin Steffen
+\textit{ABS: A Core Language for Abstract Behavioral Specification}
+https://link.springer.com/chapter/10.1007\%2F978-3-642-25271-6\_8
+
+\bibitem{ABSmut}
+\textit{Algebraic Data Types in ABS}
+http://abs-models.org/documentation/manual/\#sec:algebraic-data-types
+
+\bibitem{ScalaCase}
+\textit{Case classes in Scala}
+https://docs.scala-lang.org/tour/case-classes.html
+
+\bibitem{Encore}
+Stephan Brandauer Elias Castegren Dave Clarke Kiko Fernandez-Reyes Einar Broch JohnsenKa I. PunS. Lizeth Tapia Tarifa Tobias Wrigstad Albert Mingkun Yang
+\textit{Parallel Objects for Multicores: A Glimpse at the Parallel Language Encore}
+
+%\bibitem{}
+%http://haskell.cs.yale.edu/wp-content/uploads/2011/02/history.pdf
 \end{thebibliography}
 
 
