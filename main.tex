@@ -14,7 +14,7 @@
 %\setlength{\parindent}{0pt} % no auto indent
 
 % CLICKABLE LINKS IN TOC,CITE,REF, ETC.
-%\usepackage[hidelinks]{hyperref}
+\usepackage[hidelinks]{hyperref}
 
 % TABLES
 \usepackage{tabularx,booktabs,multirow,bigdelim} % for big parenthesis on side of table
@@ -23,6 +23,7 @@
 % GRAPHICS
 \usepackage{graphicx}
 \graphicspath{{images/}}
+\usepackage{pgfplots}
 
 % BIBLIOGRAPHY
 %\usepackage[bibstyle=nature, citestyle=numeric-comp]{biblatex}
@@ -178,7 +179,7 @@
 
 
 \chapter*{Abstract}
-\par{Encore is an object-oriented programming language with a focus on implementing concurrent and parallel systems. Unlike traditional object-oriented programming languages objects in Encore has their own thread of control. Encore also has passive objects which lack their own thread of control, these are mainly used to create data structures such as lists or trees and are used inside of active objects. This thesis presents Algebraic Data Types (ADTs) as a complement to passive classes, and explores how this construct normally found in functional languages can be a useful addition to a object-oriented language such as Encore. The implementation take advantage of the fact that the Encore compiler has a desugaring phase where the ADT syntax is transformed to passive classes. The paper also discusses the design of the syntax and the behaviour of Algebraic Data Types with concurrent and parallel systems in mind. Optimization has also been made to how pattern matching is done when used together with Algebraic Data Types.}
+\par{Encore is an object-oriented programming language with a focus on implementing concurrent and parallel systems. Unlike traditional object-oriented programming languages objects in Encore has their own thread of control. Encore also has passive objects which lack their own thread of control, these are mainly used to create data structures such as lists or trees and are used inside of active objects. This thesis presents Algebraic Data Types (ADTs) as a complement to passive classes, and explores how this construct normally found in functional languages can be a useful addition to an object-oriented language such as Encore. The implementation take advantage of the fact that the Encore compiler has a desugaring phase where the ADT syntax is transformed to traits passive classes. This paper discusses the design of the syntax and the behaviour of Algebraic Data Types with concurrent and parallel systems in mind. Optimization has also been made to how pattern matching is done when used together with Algebraic Data Types.}
 
 \newpage\newpage
 %\vspace*{\fill}
@@ -293,7 +294,7 @@ data List = Nil
 \subsection{Encoding scheme}
 \par{In Encore it is currently possible to emulate the behaviour of ADTs using a scheme of traits and classes.}\cite{gustavL}%TODO: add reference to Gustav Lundins paper
 \par{An implementation of a linked list in Encore could consist of the two classes \code{Node} and \code{Last}, both of which implements a trait \code{LinkedList}}
-\par{Classes can implement extractor methods that exposes the internal structure of an object which can then be used in pattern matching. If the trait \code{LinkedList} requires the classes who implements the trait to also implement destructor methods, an object of type \code{LinkedList} can be used in pattern matching}
+\par{Classes can implement extractor methods that exposes the internal structure of an object which can then be used in pattern matching. If the trait \code{LinkedList} requires the classes who implements the trait to also implement extractor methods, an object of type \code{LinkedList} can be used in pattern matching}
 
 \begin{lstlisting}[language=encore,caption={trait LinkedList that requires classes to implement destructor methods}]
 trait LinkedList[t]
@@ -518,7 +519,8 @@ end
 \par{A creator function for each branch will also be created. These are used as a syntactic sugar to create instances of the ADTs branches and hide the fact that they are implemented as classes.}
 
 \subsection{Pattern matching optimization}
-\par{In section~\ref{problems} we see why the current implementation of pattern matching in Encore is not optimal for use with ADTs. Here we will look at the improvements that has been made in this area.}
+\label{ch:optimization}
+\par{In section~\ref{problems} we see why the current implementation of pattern matching in Encore is not optimal for use with ADTs. Optimizations in this area have gone through a few different of iterations, here we will look at them and see the improvements that has been made.}
 \par{Consider the following ADT definition}
 
 \begin{lstlisting}[language=encore]
@@ -527,7 +529,7 @@ case Node(value : int, next : List) : List
 case Last(value : int) : List
 \end{lstlisting}
 
-\par{Prior to any of my optimizations the extractor methods for \code{Node} would look like the following:}
+\par{Prior to any of the optimizations the extractor methods for \code{Node} would look like the following:}
 
 \begin{lstlisting}[language=encore,caption={Extractor methods before optimization}]
 def Node() : Maybe[(int, List)]
@@ -561,20 +563,157 @@ end
 \begin{lstlisting}[language=encore,caption={Pattern matching on a List},label=matchgen2]
   insert slightly less horrible code here
 \end{lstlisting}
-\par{By getting rid of the Maybe and Tuple types we make avoid allocating memory on the heap that the garbage collector would have to clean up afterwards.}
+\par{By getting rid of the Maybe and Tuple types we make avoid allocating memory on the heap that the garbage collector would have to clean up afterwards. However, this implementation still has to deal with the dynamic dispatch involved when calling the extractor methods as we do not know the actual type of \code{list}, only that it is a subclass of the trait \code{List}.}
+
+\par{To prevent having to perform dynamic dispatch, we get rid of the extractor methods all together. Instead we take advantage of the fact that we staticly know the expected tag of an ADT branch at compile time. So we can compare the expected tag to the actual tag of the object, and then we make use of typecasts to access the fields of the object. The C code generated with this approach can be seen in listing~\ref{matchgen3}}
+
+\begin{lstlisting}[language=encore,caption={Pattern matching on a List},label=matchgen3]
+  insert beautiful code here
+\end{lstlisting}
+\par{We now have an implementation where we avoid both having to deal with dynamic dispatch and to allocate data on the heap.}
 \chapter{Evaluation and discussion}
 TODO
 \section{Expressive power}
 TODO
-\subsection{Some cool example}
+\subsection{Abstract Syntax Tree}
+\par{Listing~\ref{AST} shows the declaration of a Abstract Syntax Tree (AST) for a small subset of the Encore language. Thanks to the compact syntax of ADTs it is very readable and requires just a fraction of the code compared to if normal classes had been used to represent the nodes in the AST.}
+\begin{lstlisting}[language=encore,caption={Abstract Syntax Tree with ADTs},label=AST]
+data FunctionDecl
+case Function(funheader : FunctionHeader, funbody : Expr,
+              funlocals : List[Function], funsource : FilePath) : FunctionDeclaration
+
+data FunctionHeader
+case Header(modifiers : List[Modifier], kind : HeaderKind, htypeparams : List[Type],
+            hname : Name, htype : Type, hparams : List[ParamDecl]) : FunctionHeader
+
+data HeaderKind
+case Streaming() : HeaderKind
+case NonStreaming() : HeaderKind
+
+data Modifier
+case ModPrivate() : Modifier
+case ModMatch() : Modifier
+
+data ParamDecl
+case Param(pmut : Mutability, pname : Name, ptype : Type) : ParamDecl
+
+data Mutability
+case Var() : Mutability
+case Val() : Mutability
+
+data TraitComposition
+case Conjunction(tcleft : TraitComposition,tcright : TraitComposition) : TraitComposition
+case Disjunction(tcleft : TraitComposition,tcright : TraitComposition) : TraitComposition
+case TraitLeaf(tcname : Type, tcext : List[TraitExtension]) : TraitComposition
+
+data TraitExtension
+case FieldExtension(extname : Name) : TraitExtension
+case MethodExtension(extname : Name) : TraitExtension
+
+
+data Expr
+case Skip() : Expr
+case FunctionCall(typeArgs : List[Type], qname : QualifiedName, args : Arguments) : Expr
+case IfThenElse(condition : Expr, thn : Expr, els : Expr) : Expr
+case IfThen(cond : Expr, thn : Expr) : Expr
+case For(name : Name,step : Expr, src : Expr, body : Expr) : Expr
+case Break() : Expr
+case Match(arg : Expr, clauses : List[MatchClause]) : Expr
+case Assign(lhs : Expr, rhs : Expr) : Expr
+case Print(file : FileDescriptor, args : List[Expr]) : Expr
+case IntLiteral(intLit : int) : Expr
+case Unary(uop : UnaryOp, operand : Expr) : Expr
+case Binop(binop : BinaryOp, loper : Expr, roper : Expr) : Expr
+...
+\end{lstlisting}
 TODO
 \subsection{Performance}
-TODO
+\par{In this chapter we will compare the different implementations of pattern matching discussed in chapter~\ref{ch:optimization} by running benchmarks written in Encore that makes heavy use of pattern matching on ADTs.}
 \subsubsection{Benchmark}
-TODO
-\chapter{Conclusion and Future work}
-\par{ADTs in Encore are cool and/or totally sweet!}
+\par{The program we use to benchmark will create an array of one hundred elements of an Option type defined with an ADT. Every second element in the array will consist of \code{None} and the rest will be an \code{Some(int)}. The program will iterate over the array many times and perform pattern matching on the \code{Option} type. The program used for this can be seen in listing~\ref{bench1}}
 
+\begin{lstlisting}[language=encore,caption={Program used for benchmarking},label=AST]
+data Option
+case Some(value : int) : Option
+case None() : Option
+
+fun optionFun(list : [Option], length : int) : int
+  var result = 0
+  var repeats = 2500000
+  for j <- [0..repeats] do
+    for i <- [0..length-1] do
+      match list(i) with
+        case Some(v) => result = result + 1
+        case None() => result = result - 1
+      end
+    end
+  end
+  result
+end
+
+class Main
+  def main() : unit
+    var size = 100
+    var list = new [Option](size)
+    for i <- [0..size-1] do
+      if (i % 2 == 0) then
+        list(i) = Some(i)
+      else
+        list(i) = None()
+      end
+    end
+    println(optionFun(list, size))
+  end
+end
+\end{lstlisting}
+\par{The program is compiled to an excecutable \code{adt} and ran with the \code{time ./adt} command to see the run time.}
+\par{What we are interested in here is how fast the pattern matching is done, this has been difficult to determine as the original implementation of the pattern matching construct will allocate a lot of memory and quickly fill up all of the available RAM of the system. After all available RAM is depleted we are no longer measuring the speed of the pattern matching, but rather how fast memory can be swapped between main and secondary memory.}
+\par{The following graph shows the runtime of the same program with three different implementations. These include the original implementation and the two different optimizations discussed in chapter~\ref{ch:optimization}. Here we iterate over the list two million times, this number has been chosen as this allows for the highest number of iterations before the memory of the system is depleted.}
+
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    enlargelimits=0.15,
+    legend style={at={(0.5,-0.15)},
+      anchor=north,legend columns=1},
+    ylabel={Runtime in seconds},
+    symbolic x coords={Org, Opt1, Opt2},
+    xtick=data,
+    nodes near coords,
+    nodes near coords align={vertical},
+    ]
+\addplot coordinates {(Org,8.98)};
+\addplot coordinates {(Opt1,5.71)};
+\addplot coordinates {(Opt2,2.57)};
+\legend{Unoptimized ,Optimized extractor methods,No extractor methods}
+\end{axis}
+\end{tikzpicture}
+\par{Using the original implementation as a baseline, we see that optimizing the extractor methods gives us a speed up of $1.57$, and if we get rid of the extractor methods all together we see a speedup of $3.49$}
+\par{If we let the benchmarking program iterate over the list $2.5$ (up from 2), we see more drastic speedups as the unoptimized implementation runs out of memory}
+
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    enlargelimits=0.15,
+    legend style={at={(0.5,-0.15)},
+      anchor=north,legend columns=1},
+    ylabel={Runtime in seconds},
+    symbolic x coords={Org, Opt1, Opt2},
+    xtick=data,
+    nodes near coords,
+    nodes near coords align={vertical},
+    ]
+\addplot coordinates {(Org,365)};
+\addplot coordinates {(Opt1,5.86)};
+\addplot coordinates {(Opt2,3.28)};
+\legend{Unoptimized ,Optimized extractor methods,No extractor methods}
+\end{axis}
+\end{tikzpicture}
+\par{The speedup compared to the unoptimized versions here are far greater, for the implementation with optimized extractor methods the speedup is $62.28$ and the version without extractor methods is $111$ times faster. What this shows is that the original implementation for pattern matching is not only slow, but as it uses so much memory that it is impossible to use in a program that makes heavy use of ADTs to organize its data.}
+
+\chapter{Conclusion and Future work}
+\par{The goal of this thesis was to design implement Algebraic Data Types in Encore, and also to optimize pattern matching. On both accounts I think it has been done successfully. The examples through out this thesis shows how ADTs can make programs more compact, easier to read and increase programmer happiness\cite{happy}. The optimizations done to the pattern matching construct has also proven to be efficient, especially when it comes to space complexity. Without these improvements I doubt it would be feasible to add Algebraic Data Types to the Encore language.}
+%TODO: write about features I want to add, like binding a part as an object to an identifier
 %#Källor:
 %http://www.cs.cmu.edu/~rwh/pfpl.html
 %\printbibliography
@@ -609,6 +748,12 @@ https://docs.scala-lang.org/tour/case-classes.html
 \bibitem{Encore}
 Stephan Brandauer Elias Castegren Dave Clarke Kiko Fernandez-Reyes Einar Broch JohnsenKa I. PunS. Lizeth Tapia Tarifa Tobias Wrigstad Albert Mingkun Yang
 \textit{Parallel Objects for Multicores: A Glimpse at the Parallel Language Encore}
+
+
+\bibitem{happy}
+Yukihiro Matsumoto on programmer happiness
+\textit{https://maori.geek.nz/what-is-ruby-it-is-fun-and-makes-you-happy-337b6f10fa40}
+
 
 %\bibitem{}
 %http://haskell.cs.yale.edu/wp-content/uploads/2011/02/history.pdf
