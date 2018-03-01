@@ -1,3 +1,4 @@
+\documentclass[10pt]{report}
 %Notes to myself:
 %ABS:
 %   http://abs-models.org/documentation/manual/#sec:algebraic-data-types
@@ -7,7 +8,6 @@
 %
 %
 
-\documentclass[10pt]{report}
 
 \usepackage[utf8]{inputenc}
 \usepackage{float}
@@ -22,17 +22,17 @@
 
 % GRAPHICS
 \usepackage{graphicx}
-\graphicspath{{images/}}
-\usepackage{pgfplots}
+%\graphicspath{{images/}}
+%\usepackage{pgfplots}
 
 % BIBLIOGRAPHY
 %\usepackage[bibstyle=nature, citestyle=numeric-comp]{biblatex}
 %\usepackage{natbib}
-%\bibliographystyle{plain} % plain
-\bibliography{references}
+%\bibliography{references}
+\bibliographystyle{ieeetr} % plain
 
 % APPENDICES
-\usepackage[toc,page]{appendix}
+%\usepackage[toc,page]{appendix}
 
 % CHAPTER STYLE
 \usepackage{titlesec}
@@ -207,7 +207,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Encore}
-\par{Encore is an object-oriented programming language that is being developed at Uppsala University\cite{Encore}. It has a focus on implementing concurrent and parallel systems and it is using the Actor model. Encore has active objects that have their own thread of control and they can communicate with each other through message passing. Encore also has passive objects; these lack their own thread of control and behave like objects in more traditional object-oriented programming languages such as C++ or Java. Passive objects are mainly used to create data structures such as lists or trees and are used inside of active objects. Instead of the standard class-based inheritance, Encore uses traits.  A trait is a composable unit of behaviour that provides a set of methods and requires a set of fields and methods from any class that wishes to include it.} %TODO: write moar stuffs!
+\par{Encore is an object-oriented programming language that is being developed at Uppsala University~\cite{DBLP:conf/sfm/BrandauerCCFJPT15}. It has a focus on implementing concurrent and parallel systems and it is using the Actor model~\cite{Boer:2017:SAO:3145473.3122848}. Encore has active objects that have their own thread of control and they can communicate with each other through message passing. Encore also has passive objects; these lack their own thread of control and behave like objects in more traditional object-oriented programming languages such as C++ or Java. Passive objects are mainly used to create data structures such as lists or trees and are used inside of active objects. Instead of the standard class-based inheritance, Encore uses traits.  A trait is a composable unit of behaviour that provides a set of methods and requires a set of fields and methods from any class that wishes to include it.} %TODO: write moar stuffs!
 \section{Algebraic Data Types}
 \par{Functional languages use Algebraic data types (ADTs) to describe composite data. Data structures can in type theory be described in terms of products, sums and recursive types. This leads to an algebra for describing data structures (hence Algebraic Data Types). Such data types are common in functional languages, such as ML or Haskell.}
 
@@ -240,15 +240,15 @@ data Tree t = Nil
 \subsection{ADTs In Imperative/OO Languages}
 \par{While Algebraic Data Types are mostly found in functional languages, there are examples of imperative languages that feature them. Here we will study two such languages so that we can get some insight as to what might be a good design for ADTs in Encore.}
 \subsubsection{Scala}
-\par{Scala is a multi-paradigm, general purpose language that features ADTs.}
+\par{Scala~\cite{scala-overview-tech-report} is a multi-paradigm, general purpose language that features ADTs.}
 \par{A binary tree in Scala could have the following definition:}
 
-\begin{lstlisting}[language=Scala,caption={ADT definition in Scala},label={lst:e4c_syntax}]
+\begin{lstlisting}[language=Scala,caption={ADT definition in Scala}]
 sealed trait Tree[+T]
 case object Nil extends Tree[Nothing]
 case class Branch[T](value:T, left:Tree[T], right:Tree[T]) extends Tree[T]
 \end{lstlisting}
-\par{Noteworthy here is that the ADT is defined in terms of a trait and classes extending the trait. In Scala a sealed trait is a special kind of trait that can only be extended in the same file as it is defined. A case class is mostly a normal class with a few differences, such as it being immutable\cite{ScalaCase}. Case classes can also be used in pattern matching:}
+\par{Noteworthy here is that the ADT is defined in terms of a trait and classes extending the trait. In Scala a sealed trait is a special kind of trait that can only be extended in the same file as it is defined. A case class is mostly a normal class with a few differences, such as it being immutable. Case classes can also be used in pattern matching:}
 \begin{lstlisting}[language=Scala,caption={Pattern matching on an ADT in Scala},label=scala-match]
 tree match {
     case Branch(value, left, right) => Foo()
@@ -258,7 +258,7 @@ tree match {
 \par{One can easily see the similarities of this implementation and the one in listing \ref{scala-match}. Here \code{Tree} is a type constructor, \code{Nil} and \code{Branch} are data constructors.}
 \par{Scala uses a scheme of traits and classes to encode its algebraic data types. Also, it allows for case classes to be used in destructured pattern matching. This allows for programming patterns normally found only in functional languages.}
 \subsubsection{ABS}%TODO: Bababa
-\par{The Abstract Behavioral Specification language\cite{ABS} (ABS) is another language that features ADTs. It is a language that is interesting to look at because just like Encore it is an Object Oriented language that uses the Actor model as its concurrency model. When implementing ADTs in Encore, some design decisions had to be made and looking at another language that faced with the same design decisions gave some insight of what a good design could be. One such example is that of mutability. In ABS all values held by an ADT are immutable. The reasoning behind this is to make them safe to pass around between different actors and that it makes it easier to reason about the code\cite{ABSmut}}
+\par{The Abstract Behavioral Specification language~\cite{10.1007/978-3-642-25271-6_8} (ABS) is another language that features ADTs. It is a language that is interesting to look at because just like Encore it is an Object Oriented language that uses the Actor model as its concurrency model. When implementing ADTs in Encore, some design decisions had to be made and looking at another language that faced with the same design decisions gave some insight of what a good design could be. One such example is that of mutability. In ABS all values held by an ADT are immutable. The reasoning behind this is to make them safe to pass around between different actors and that it makes it easier to reason about the code.}%\cite{ABSmut}}
 \par{A linked list containing Integers can be defined as}
 \begin{lstlisting}[language=encore,caption={Linked list in ABS}]
 data List = Nil
@@ -283,10 +283,10 @@ data List = Nil
 \end{lstlisting}
 
 \chapter{Encoding ADTs in Encore}
-\par{In Encore it is currently possible to emulate the behaviour of ADTs using a scheme of traits and classes.\cite{gustavL}. In this chapter we will give an example how this is done, and also discuss some of the problems inherent in using this scheme.}
+\par{In Encore it is currently possible to emulate the behaviour of ADTs using a scheme of traits and classes. In this chapter we will give an example how this is done, and also discuss some of the problems inherent in using this scheme.}
 \subsection{Encoding scheme}
-\par{An implementation of a linked list in Encore could consist of the two classes \code{Node} and \code{Last}, both of which implement the trait \code{LinkedList}}
-\par{Classes can implement extractor methods that exposes the internal structure of an object which can then be used in pattern matching. If the trait \code{LinkedList} requires the classes who implements the trait to also implement extractor methods, an object of type \code{LinkedList} can be used in pattern matching}
+\par{An implementation of a linked list in Encore could consist of the two classes \code{Node} and \code{Last}, both of which implement the trait \code{LinkedList}.}
+\par{Classes can implement extractor methods that exposes the internal structure of an object which can then be used in pattern matching~\cite{Lundin930151}. If the trait \code{LinkedList} requires the classes who implements the trait to also implement extractor methods, an object of type \code{LinkedList} can be used in pattern matching}
 
 \begin{lstlisting}[language=encore,caption={trait LinkedList that requires classes to implement destructor methods}]
 trait LinkedList[t]
@@ -373,7 +373,7 @@ end
 \par{The task of extending Encore to include ADTs can be solved in many different ways. For example; the Encore compiler that generates C code could transform the ADT syntax to a union type, which can be used for both product and sum types. Another way is to take advantage of the fact that the Encore compiler has a desugaring phase and simply transform the ADT syntax to match the encoding scheme discussed in the previous chapter. The later method is the one that is used as it offers a few benefits. One such benefit is that this would allow for ADTs and its branches to define methods just like classes.}
 
 \subsection{Syntax}
-\par{The syntax for ADTs have gone through a number of iterations before we settled on the final one described below.  It is inspired by the syntax Scala uses for its ADTs, but modified to fit in with the rest of the Encore language. The grammar of the syntax can be seen in listing~\ref{BNF} in Extended BNF form\cite{eBNF}}%TODO: wikipedia ref to ebnf
+\par{The syntax for ADTs have gone through a number of iterations before we settled on the final one described below.  It is inspired by the syntax Scala uses for its ADTs, but modified to fit in with the rest of the Encore language. The grammar of the syntax can be seen in listing~\ref{BNF} in Extended BNF form\cite{Backus59}}%TODO: wikipedia ref to ebnf
 
 \begin{lstlisting}[language=Encore,caption={Grammar for the suggested syntax},label=BNF,mathescape=true]
 AdtDeclaration ::= "data", AdtIdentifier, Body
@@ -714,7 +714,7 @@ case Binop(binop : BinaryOp, loper : Expr, roper : Expr) : Expr
 \subsubsection{Benchmark}
 \par{The program we use to benchmark will create an array of one hundred elements of an Option type defined with an ADT. Every second element in the array will consist of \code{None} and the rest will be an \code{Some(int)}. The program will iterate over the array many times and perform pattern matching on the \code{Option} type. The program used for this can be seen in listing~\ref{bench1}}
 
-\begin{lstlisting}[language=encore,caption={Program used for benchmarking},label=AST]
+\begin{lstlisting}[language=encore,caption={Program used for benchmarking},label=bench1]
 data Option
 case Some(value : int) : Option
 case None() : Option
@@ -752,49 +752,49 @@ end
 \par{What we are interested in here is how fast the pattern matching is done, this has been difficult to determine as the original implementation of the pattern matching construct will allocate a lot of memory and quickly fill up all of the available RAM of the system. After all available RAM is depleted we are no longer measuring the speed of the pattern matching, but rather how fast memory can be swapped between main and secondary memory.}
 \par{The following graph shows the runtime of the same program with three different implementations. These include the original implementation and the two different optimizations discussed in chapter~\ref{ch:optimization}. Here we iterate over the list two million times, this number has been chosen as this allows for the highest number of iterations before the memory of the system is depleted.}
 
-\begin{tikzpicture}
-\begin{axis}[
-    ybar,
-    enlargelimits=0.15,
-    legend style={at={(0.5,-0.15)},
-      anchor=north,legend columns=1},
-    ylabel={Runtime in seconds},
-    symbolic x coords={Org, Opt1, Opt2},
-    xtick=data,
-    nodes near coords,
-    nodes near coords align={vertical},
-    ]
-\addplot coordinates {(Org,8.98)};
-\addplot coordinates {(Opt1,5.71)};
-\addplot coordinates {(Opt2,2.57)};
-\legend{Unoptimized ,Optimized extractor methods,No extractor methods}
-\end{axis}
-\end{tikzpicture}
+%\begin{tikzpicture}
+%\begin{axis}[
+%    ybar,
+%    enlargelimits=0.15,
+%    legend style={at={(0.5,-0.15)},
+%      anchor=north,legend columns=1},
+%    ylabel={Runtime in seconds},
+%    symbolic x coords={Org, Opt1, Opt2},
+%    xtick=data,
+%    nodes near coords,
+%    nodes near coords align={vertical},
+%    ]
+%\addplot coordinates {(Org,8.98)};
+%\addplot coordinates {(Opt1,5.71)};
+%\addplot coordinates {(Opt2,2.57)};
+%\legend{Unoptimized ,Optimized extractor methods,No extractor methods}
+%\end{axis}
+%\end{tikzpicture}
 \par{Using the original implementation as a baseline, we see that optimizing the extractor methods gives us a speed up of $1.57$, and if we get rid of the extractor methods all together we see a speedup of $3.49$}
 \par{If we let the benchmarking program iterate over the list $2.5$ (up from 2), we see more drastic speedups as the unoptimized implementation runs out of memory}
 
-\begin{tikzpicture}
-\begin{axis}[
-    ybar,
-    enlargelimits=0.15,
-    legend style={at={(0.5,-0.15)},
-      anchor=north,legend columns=1},
-    ylabel={Runtime in seconds},
-    symbolic x coords={Org, Opt1, Opt2},
-    xtick=data,
-    nodes near coords,
-    nodes near coords align={vertical},
-    ]
-\addplot coordinates {(Org,365)};
-\addplot coordinates {(Opt1,5.86)};
-\addplot coordinates {(Opt2,3.28)};
-\legend{Unoptimized ,Optimized extractor methods,No extractor methods}
-\end{axis}
-\end{tikzpicture}
+%\begin{tikzpicture}
+%\begin{axis}[
+%    ybar,
+%    enlargelimits=0.15,
+%    legend style={at={(0.5,-0.15)},
+%      anchor=north,legend columns=1},
+%    ylabel={Runtime in seconds},
+%    symbolic x coords={Org, Opt1, Opt2},
+%    xtick=data,
+%    nodes near coords,
+%    nodes near coords align={vertical},
+%    ]
+%\addplot coordinates {(Org,365)};
+%\addplot coordinates {(Opt1,5.86)};
+%\addplot coordinates {(Opt2,3.28)};
+%\legend{Unoptimized ,Optimized extractor methods,No extractor methods}
+%\end{axis}
+%\end{tikzpicture}
 \par{The speedup compared to the unoptimized versions here are far greater. For the implementation with optimized extractor methods the speedup is $62.28$ and the version without extractor methods is $111$ times faster. What this shows is that the original implementation for pattern matching is not only slow, but that it uses so much memory that it is impossible to use in a program that makes heavy use of ADTs to organize its data.}
 
 \chapter{Conclusion and Future work}
-\par{The goal of this thesis was to design and implement Algebraic Data Types in Encore, and also to optimize pattern matching. On both accounts I think it has been done successfully. The examples throughout this thesis shows how ADTs can make programs more compact, easier to read and increase programmer happiness\cite{happy}. The optimizations done to the pattern matching construct have also proven to be efficient, especially when it comes to space complexity. Without these improvements I doubt it would be feasible to add Algebraic Data Types to the Encore language.}
+\par{The goal of this thesis was to design and implement Algebraic Data Types in Encore, and also to optimize pattern matching. On both accounts I think it has been done successfully. The examples throughout this thesis shows how ADTs can make programs more compact, easier to read and increase programmer happiness\footnote{Yukihiro Matsumoto on programmer happiness: https://changelog.com/podcast/202}. The optimizations done to the pattern matching construct have also proven to be efficient, especially when it comes to space complexity. Without these improvements I doubt it would be feasible to add Algebraic Data Types to the Encore language.}
 \par{However, we have throughout this thesis discussed some flaws with the implementation of ADTs. One such flaw is mentioned in section~\ref{ch:behaviour}. If a data constructor defines a method, it is not possible to ever call this method as the constructor method does not return an object of the correct type. To solve this some more syntactic sugar could be added to the pattern matching construct. If some variable \code{x} is matched to be of type \code{Foo}, then \code{x} could be typecasted to \code{Foo} so that we are able to call the method.}
 %TODO: write about features I want to add, like binding a part as an object to an identifier
 %#Källor:
@@ -804,45 +804,44 @@ end
 \chapter{References}
 
 
-\begin{thebibliography}{9}
-\bibitem{gustavL}
-Gustav Lundin
-\textit{Pattern Matching in Encore}.
-http://www.diva-portal.org/smash/get/diva2:930151/FULLTEXT01.pdf
+%\begin{thebibliography}{9}
+%\bibitem{gustavL}
+%Gustav Lundin
+%\textit{Pattern Matching in Encore}.
+%http://www.diva-portal.org/smash/get/diva2:930151/FULLTEXT01.pdf
 
-\bibitem{eBNF}
-Wikipedia
-\textit{Extended BNF}
-https://en.wikipedia.org/wiki/Extended\_Backus\%E2\%80\%93Naur\_form
+%\bibitem{eBNF}
+%Wikipedia
+%\textit{Extended BNF}
+%https://en.wikipedia.org/wiki/Extended\_Backus\%E2\%80\%93Naur\_form
 
-\bibitem{ABS}
-Einar Broch JohnsenReiner HähnleJan SchäferRudolf SchlatteMartin Steffen
-\textit{ABS: A Core Language for Abstract Behavioral Specification}
-https://link.springer.com/chapter/10.1007\%2F978-3-642-25271-6\_8
+%\bibitem{ABS}
+%Einar Broch JohnsenReiner HähnleJan SchäferRudolf SchlatteMartin Steffen
+%\textit{ABS: A Core Language for Abstract Behavioral Specification}
+%https://link.springer.com/chapter/10.1007\%2F978-3-642-25271-6\_8
 
-\bibitem{ABSmut}
-\textit{Algebraic Data Types in ABS}
-http://abs-models.org/documentation/manual/\#sec:algebraic-data-types
+%\bibitem{ABSmut}
+%\textit{Algebraic Data Types in ABS}
+%http://abs-models.org/documentation/manual/\#sec:algebraic-data-types
 
-\bibitem{ScalaCase}
-\textit{Case classes in Scala}
-https://docs.scala-lang.org/tour/case-classes.html
+%\bibitem{ScalaCase}
+%\textit{Case classes in Scala}
+%https://docs.scala-lang.org/tour/case-classes.html
 
-\bibitem{Encore}
-Stephan Brandauer Elias Castegren Dave Clarke Kiko Fernandez-Reyes Einar Broch JohnsenKa I. PunS. Lizeth Tapia Tarifa Tobias Wrigstad Albert Mingkun Yang
-\textit{Parallel Objects for Multicores: A Glimpse at the Parallel Language Encore}
+%\bibitem{Encore}
+%Stephan Brandauer Elias Castegren Dave Clarke Kiko Fernandez-Reyes Einar Broch JohnsenKa I. PunS. Lizeth Tapia Tarifa Tobias Wrigstad Albert Mingkun Yang
+%\textit{Parallel Objects for Multicores: A Glimpse at the Parallel Language Encore}
 
 
-\bibitem{happy}
-Yukihiro Matsumoto on programmer happiness
-\textit{https://maori.geek.nz/what-is-ruby-it-is-fun-and-makes-you-happy-337b6f10fa40}
+%\bibitem{happy}
+%Yukihiro Matsumoto on programmer happiness
+%\textit{https://maori.geek.nz/what-is-ruby-it-is-fun-and-makes-you-happy-337b6f10fa40}
 
 
 %\bibitem{}
 %http://haskell.cs.yale.edu/wp-content/uploads/2011/02/history.pdf
-\end{thebibliography}
+%\end{thebibliography}
 
-
-\begin{appendices}
-\end{appendices}
+\bibliography{references}
 \end{document}
+
